@@ -1,2 +1,4 @@
 This head tracking code is from the compiz head tracking plugin,
 all rights reserved.
+
+see http://wiki.compiz.org/Plugins/Headtracking
