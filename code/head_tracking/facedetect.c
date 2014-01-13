@@ -265,6 +265,7 @@ int headtrackThread(int *x1, int *y1, int *x2, int *y2, int lissage, int scale)
 //			frame = cvRetrieveFrame( capture );
 			frame = cvQueryFrame( capture );
 			if(frame) {
+				cvShowImage("Camera_Output", frame); //Show image frames on created window
 				if( !frame_copy )
 					frame_copy = cvCreateImage( cvSize(frame->width,frame->height), IPL_DEPTH_8U, frame->nChannels );
 				if( frame->origin == IPL_ORIGIN_TL )
@@ -528,5 +529,25 @@ int detect(double scale, int uX, int uY, int *x1, int *y1, int *x2, int *y2, int
 
 int main(int argc, char** argv)
 {
-	init();
+	int x1,y1,x2,y2;
+	int lissage = 1;
+	int smooth = 0;
+	int delay = 200;
+	int opt_scale = 1;
+	char key;
+	while(1)
+	{
+		headtrack(&x1, &y1, &x2, &y2,
+				  lissage,
+				  smooth,
+				  delay,
+				  opt_scale);
+		printf("x1(%d,%d), x2(%d,%d)\n",x1,y1,x2,y2);
+		key = cvWaitKey(10); //Capture Keyboard stroke
+		if ( key  == 27){
+			break; //If you hit ESC key loop will break.
+		}
+	}
+	cvDestroyWindow("Camera_Output"); //Destroy Window
+	return 0;
 }
