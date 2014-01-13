@@ -17,6 +17,7 @@
 #include "facedetect.h"
 
 #define CASCADE "haarcascade_frontalface_alt2.xml"
+#define DATADIR "../ressources/"
 #define UX 1024
 #define UY 768
 #define MAX_TRACK_PT 100
@@ -113,7 +114,7 @@ void init(void)
 
 	// Cascade path
 	if (home && strlen(home) > 0) {
-		asprintf(&path, "%s/.compiz/data/%s", home, CASCADE);
+		asprintf(&path, "%s/opencv-2.4.8/data/%s", home, CASCADE);
 		if (stat(path, &fileExists) != 0) {
 			free(path);
 			path = NULL;
@@ -129,7 +130,7 @@ void init(void)
 	if (path != NULL) cascade = (CvHaarClassifierCascade*)cvLoad(path, 0, 0, 0);
 	else cascade = 0;
 	storage = cvCreateMemStorage(0);
-	capture = cvCaptureFromCAM(0);
+	capture = cvCaptureFromCAM(CV_CAP_ANY);
 	prevx1 = prevy1 = prevx2 = prevy2 = 0;
 	realprevx1 = realprevy1 = realprevx2 = realprevy2 = 0;
 	barPx = barPy = barRx = barRy = 0;
@@ -261,7 +262,8 @@ int headtrackThread(int *x1, int *y1, int *x2, int *y2, int lissage, int scale)
 	}
 	if (capture) {
 		if (cvGrabFrame(capture)) {
-			frame = cvRetrieveFrame( capture );
+//			frame = cvRetrieveFrame( capture );
+			frame = cvQueryFrame( capture );
 			if(frame) {
 				if( !frame_copy )
 					frame_copy = cvCreateImage( cvSize(frame->width,frame->height), IPL_DEPTH_8U, frame->nChannels );
@@ -323,10 +325,10 @@ int detect(double scale, int uX, int uY, int *x1, int *y1, int *x2, int *y2, int
 			cvEqualizeHist(small_img, small_img);
 			cvClearMemStorage(storage);
 			CvSeq* faces = cvHaarDetectObjects( small_img, cascade, storage,
-				1.1, 2, 0
-				|CV_HAAR_FIND_BIGGEST_OBJECT
-				,
-				cvSize(30, 30) );
+												1.1, 2, 0
+												|CV_HAAR_FIND_BIGGEST_OBJECT
+												, cvSize(30, 30)
+												,cvSize(0,0));
 			for( i = 0; i < (faces ? faces->total : 0); i++ ) {
 				CvRect* r = (CvRect*)cvGetSeqElem( faces, i );
 				resx1 = r->x * scale;
@@ -522,4 +524,9 @@ int detect(double scale, int uX, int uY, int *x1, int *y1, int *x2, int *y2, int
 		*x2 = lar + resw;
 	}
 	return(retour);
+}
+
+int main(int argc, char** argv)
+{
+	init();
 }
