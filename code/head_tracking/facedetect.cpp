@@ -16,8 +16,8 @@
 #include "facedetect.h"
 
 #define CASCADE "haarcascade_frontalface_alt2.xml"
-#define DATADIR "../ressources/"
-#define UX 1024
+#define DATADIR "../code/ressources/"
+#define UX 1366
 #define UY 768
 #define MAX_TRACK_PT 100
 #define MIN_TRACK_PT 10
@@ -126,7 +126,11 @@ void init(void)
 			path = NULL;
 		}
 	}
-	if (path != NULL) cascade = (CvHaarClassifierCascade*)cvLoad(path, 0, 0, 0);
+    if (path != NULL)
+    {
+        std::cout<<"Cascade classifier: "<<path<<std::endl;
+        cascade = (CvHaarClassifierCascade*)cvLoad(path, 0, 0, 0);
+    }
 	else cascade = 0;
 	storage = cvCreateMemStorage(0);
 	capture = cvCaptureFromCAM(CV_CAP_ANY);
@@ -264,7 +268,7 @@ int headtrackThread(int *x1, int *y1, int *x2, int *y2, int lissage, int scale)
 //			frame = cvRetrieveFrame( capture );
 			frame = cvQueryFrame( capture );
 			if(frame) {
-            //	cvShowImage("Camera_Output", frame); //Show image frames on created window
+                //cvShowImage("Camera_Output", frame); //Show image frames on created window
 				if( !frame_copy )
 					frame_copy = cvCreateImage( cvSize(frame->width,frame->height), IPL_DEPTH_8U, frame->nChannels );
 				if( frame->origin == IPL_ORIGIN_TL )
