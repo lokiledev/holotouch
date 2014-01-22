@@ -12,9 +12,13 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
-#include "opencv/cv.h"
+
+#include "opencv2/objdetect/objdetect.hpp"
+#include "opencv2/highgui/highgui.hpp"
+#include "opencv2/imgproc/imgproc.hpp"
+/*#include "opencv/cv.h"
 #include "opencv/highgui.h"
-#include "facedetect.h"
+#include "facedetect.h"*/
 
 #define CASCADE "haarcascade_frontalface_alt2.xml"
 #define DATADIR "../ressources/"
@@ -127,6 +131,7 @@ void init(void)
 			path = NULL;
 		}
 	}
+	printf("path %s\n:",path);
 	if (path != NULL) cascade = (CvHaarClassifierCascade*)cvLoad(path, 0, 0, 0);
 	else cascade = 0;
 	storage = cvCreateMemStorage(0);
@@ -265,7 +270,6 @@ int headtrackThread(int *x1, int *y1, int *x2, int *y2, int lissage, int scale)
 //			frame = cvRetrieveFrame( capture );
 			frame = cvQueryFrame( capture );
 			if(frame) {
-				cvShowImage("Camera_Output", frame); //Show image frames on created window
 				if( !frame_copy )
 					frame_copy = cvCreateImage( cvSize(frame->width,frame->height), IPL_DEPTH_8U, frame->nChannels );
 				if( frame->origin == IPL_ORIGIN_TL )
@@ -531,7 +535,7 @@ int main(int argc, char** argv)
 {
 	int x1,y1,x2,y2;
 	int lissage = 1;
-	int smooth = 0;
+	int smooth = 1;
 	int delay = 200;
 	int opt_scale = 1;
 	char key;
@@ -543,8 +547,21 @@ int main(int argc, char** argv)
 				  delay,
 				  opt_scale);
 		printf("x1(%d,%d), x2(%d,%d)\n",x1,y1,x2,y2);
-		key = cvWaitKey(10); //Capture Keyboard stroke
-		if ( key  == 27){
+		if (frame_copy)
+		{
+			Point center;
+			center.x = (x1+x2)/2;
+			center.y = (y1+y2)/2;
+			int h = abs(y2-y1);
+			int w = abs(x2-x1);
+			int radius = (h+w)/2;
+			circle( frame_copy, center, radius, CV_RGB(255,0,0), 3, 8, 0 );
+			cvShowImage("Camera_Output", frame_copy); //Show image frames on created window
+			
+		}
+		key = cvWaitKey(100);//Capture Keyboard stroke
+		if ( key  == 27)
+		{
 			break; //If you hit ESC key loop will break.
 		}
 	}

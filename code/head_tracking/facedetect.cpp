@@ -1,4 +1,3 @@
-#define _GNU_SOURCE
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -265,7 +264,7 @@ int headtrackThread(int *x1, int *y1, int *x2, int *y2, int lissage, int scale)
 //			frame = cvRetrieveFrame( capture );
 			frame = cvQueryFrame( capture );
 			if(frame) {
-				cvShowImage("Camera_Output", frame); //Show image frames on created window
+            //	cvShowImage("Camera_Output", frame); //Show image frames on created window
 				if( !frame_copy )
 					frame_copy = cvCreateImage( cvSize(frame->width,frame->height), IPL_DEPTH_8U, frame->nChannels );
 				if( frame->origin == IPL_ORIGIN_TL )
@@ -526,6 +525,46 @@ int detect(double scale, int uX, int uY, int *x1, int *y1, int *x2, int *y2, int
 	}
 	return(retour);
 }
+
+
+//Parameters initially from wiimote configuration of
+//Johny Chung Lee, adapted for the webcam here.
+
+#define EYE_DISTANCE 80 //millimeters
+#define VERTICAL_ANGLE 0// allows to compensate if webcam is not parallel
+                        // with the screen
+#define WIIMOTE_ADJUST 100 // head height
+#define CAMERA_ABOVE true // camera above the screen generally
+
+// Track head position with Johnny Chung Lee's trig stuff
+// XXX: Note that positions should be float values from 0-1024
+//      and 0-720 (width, height, respectively).
+void WTLeeTrackPosition (head_t* head,
+                         float x1,
+                         float y1,
+                         float x2,
+                         float y2,
+                         float radPerPix)
+{
+    // Where is the middle of the head?
+    float dx = x1 - x2, dy = y1 - y2;
+    float pointDist = (float)sqrt(dx * dx + dy * dy);
+    float angle = radPerPix * pointDist / 2.0;
+    // Set the head distance in units of screen size
+    head->z = ((float)EYE_DISTANCE / 1000.0) / (float)tan(angle);
+    float aX = (x1 + x2) / 2.0f, aY = (y1 + y2) / 2.0f;
+    // Set the head position horizontally
+    head->x = (float)sin(radPerPix * (aX - 512.0)) * head->z;
+    float relAng = (aY - 384.0) * radPerPix;
+    // Set the head height
+    head->y = -0.5f + (float)sin((float)VERTICAL_ANGLE/ 100.0 + relAng) * head->z;
+    // And adjust it to suit our needs
+    head->y = head->y + (float)WIIMOTE_ADJUST / 100.0;
+    // And if our Wiimote is above our screen, adjust appropriately
+    if (CAMERA_ABOVE)
+        head->y = head->y + 0.5;
+}
+
 
 /*int main(int argc, char** argv)
 {
