@@ -268,7 +268,7 @@ int headtrackThread(int *x1, int *y1, int *x2, int *y2, int lissage, int scale)
 //			frame = cvRetrieveFrame( capture );
 			frame = cvQueryFrame( capture );
 			if(frame) {
-                //cvShowImage("Camera_Output", frame); //Show image frames on created window
+                cvShowImage("Camera_Output",frame);
 				if( !frame_copy )
 					frame_copy = cvCreateImage( cvSize(frame->width,frame->height), IPL_DEPTH_8U, frame->nChannels );
 				if( frame->origin == IPL_ORIGIN_TL )
@@ -537,7 +537,7 @@ int detect(double scale, int uX, int uY, int *x1, int *y1, int *x2, int *y2, int
 #define EYE_DISTANCE 80 //millimeters
 #define VERTICAL_ANGLE 0// allows to compensate if webcam is not parallel
                         // with the screen
-#define WIIMOTE_ADJUST 100 // head height
+#define WIIMOTE_ADJUST 0 // head height between -100 and 100
 #define CAMERA_ABOVE true // camera above the screen generally
 
 // Track head position with Johnny Chung Lee's trig stuff
@@ -568,29 +568,3 @@ void WTLeeTrackPosition (head_t* head,
     if (CAMERA_ABOVE)
         head->y = head->y + 0.5;
 }
-
-
-/*int main(int argc, char** argv)
-{
-	int x1,y1,x2,y2;
-	int lissage = 1;
-	int smooth = 0;
-	int delay = 200;
-	int opt_scale = 1;
-	char key;
-	while(1)
-	{
-		headtrack(&x1, &y1, &x2, &y2,
-				  lissage,
-				  smooth,
-				  delay,
-				  opt_scale);
-		printf("x1(%d,%d), x2(%d,%d)\n",x1,y1,x2,y2);
-		key = cvWaitKey(10); //Capture Keyboard stroke
-		if ( key  == 27){
-			break; //If you hit ESC key loop will break.
-		}
-	}
-	cvDestroyWindow("Camera_Output"); //Destroy Window
-	return 0;
-}*/
