@@ -56,6 +56,8 @@ static void end(void);
 static int headtrackThread(int *x1, int *y1, int *x2, int *y2, int lissage, int scale);
 void endThread(void);
 static int detect(double scale, int uX, int uY, int *x1, int *y1, int *x2, int *y2, int lissage);
+static void show_head(IplImage* img, int x1, int y1, int x2, int y2);
+
 typedef struct {
 	int lissage;
 	int delay;
@@ -264,11 +266,9 @@ int headtrackThread(int *x1, int *y1, int *x2, int *y2, int lissage, int scale)
 		init();
 	}
 	if (capture) {
-		if (cvGrabFrame(capture)) {
-//			frame = cvRetrieveFrame( capture );
+        if (cvGrabFrame(capture)) {
 			frame = cvQueryFrame( capture );
 			if(frame) {
-                cvShowImage("Camera_Output",frame);
 				if( !frame_copy )
 					frame_copy = cvCreateImage( cvSize(frame->width,frame->height), IPL_DEPTH_8U, frame->nChannels );
 				if( frame->origin == IPL_ORIGIN_TL )
@@ -276,6 +276,8 @@ int headtrackThread(int *x1, int *y1, int *x2, int *y2, int lissage, int scale)
 				else
 					cvFlip(frame, frame_copy, 0);
 				retour = detect((double)scale / 10.0, UX, UY, x1, y1, x2, y2, lissage);
+                cvDrawCircle(frame, cvPoint(*x1,*y1), 50, CV_RGB(0,255,0), 3, 8, 0 );
+                cvShowImage("Camera_Output",frame);
 			}
 		}
 	}
@@ -534,7 +536,7 @@ int detect(double scale, int uX, int uY, int *x1, int *y1, int *x2, int *y2, int
 //Parameters initially from wiimote configuration of
 //Johny Chung Lee, adapted for the webcam here.
 
-#define EYE_DISTANCE 80 //millimeters
+#define EYE_DISTANCE 10 // between 1 and 1000 depending on resolution
 #define VERTICAL_ANGLE 0// allows to compensate if webcam is not parallel
                         // with the screen
 #define WIIMOTE_ADJUST 0 // head height between -100 and 100
@@ -567,4 +569,13 @@ void WTLeeTrackPosition (head_t* head,
     // And if our Wiimote is above our screen, adjust appropriately
     if (CAMERA_ABOVE)
         head->y = head->y + 0.5;
+}
+
+static void show_head(IplImage* img, int x1, int y1, int x2, int y2)
+{
+    CvPoint center = cvPoint(0,0);
+    center.x = cvRound((x1 + x2)*0.5);
+    center.y = cvRound((y1 + y2)*0.5);
+    int radius = cvRound(((x2-x1)+(y2-y1))*0.25);
+    cvDrawCircle(img, center, radius, CV_RGB(0,255,0), 3, 8, 0 );
 }

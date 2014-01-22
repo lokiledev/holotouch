@@ -14,4 +14,4 @@ void WTLeeTrackPosition (head_t* head,
 
 
 #define DEPTH_ADJUST 100 // between 1 and 1000, zoom effect
-#define SCALE 50 // scale of head between 10 and 100
+#define SCALE 40 // scale of head between 10 and 100
