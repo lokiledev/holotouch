@@ -3,7 +3,7 @@ typedef struct {
     float y;
     float z;
 }head_t;
-int headtrack(int *x1, int *y1, int *x2, int *y2, int lissage, int smooth, int delay, int opt_scale);
+int headtrack(int *x1, int *y1, int *x2, int *y2, int lissage, int smooth, int delay, double opt_scale);
 void endThread(void);
 void WTLeeTrackPosition (head_t* head,
                          float x1,

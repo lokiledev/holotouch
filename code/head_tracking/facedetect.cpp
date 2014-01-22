@@ -53,7 +53,7 @@ static pthread_t tid = -1;
 // Local protos
 static void init(void);
 static void end(void);
-static int headtrackThread(int *x1, int *y1, int *x2, int *y2, int lissage, int scale);
+static int headtrackThread(int *x1, int *y1, int *x2, int *y2, int lissage, double scale);
 void endThread(void);
 static int detect(double scale, int uX, int uY, int *x1, int *y1, int *x2, int *y2, int lissage);
 static void show_head(IplImage* img, int x1, int y1, int x2, int y2);
@@ -69,7 +69,7 @@ static void *threadRoutine(void *p) {
 	int ret, x1, y1, x2, y2, alive = 1;
 	int lissage = ((threadarg_t *)p)->lissage;
 	int delay = ((threadarg_t *)p)->delay;
-	int scale = ((threadarg_t *)p)->scale;
+    double scale = ((threadarg_t *)p)->scale;
 	// free(p);
 
 	init();
@@ -172,7 +172,7 @@ void end(void)
 	cvReleaseCapture(&capture);
 }
 
-int headtrack(int *x1, int *y1, int *x2, int *y2, int lissage, int smooth, int delay, int opt_scale)
+int headtrack(int *x1, int *y1, int *x2, int *y2, int lissage, int smooth, int delay, double opt_scale)
 {
 	int ret;
 	threadarg_t *arg = NULL;
@@ -257,7 +257,7 @@ int headtrack(int *x1, int *y1, int *x2, int *y2, int lissage, int smooth, int d
 	return(ret);
 }
 
-int headtrackThread(int *x1, int *y1, int *x2, int *y2, int lissage, int scale)
+int headtrackThread(int *x1, int *y1, int *x2, int *y2, int lissage, double scale)
 {
 	IplImage *frame = 0;
 	int retour = 0;
@@ -275,9 +275,8 @@ int headtrackThread(int *x1, int *y1, int *x2, int *y2, int lissage, int scale)
 					cvCopy(frame, frame_copy, 0);
 				else
 					cvFlip(frame, frame_copy, 0);
-				retour = detect((double)scale / 10.0, UX, UY, x1, y1, x2, y2, lissage);
-                cvDrawCircle(frame, cvPoint(*x1,*y1), 50, CV_RGB(0,255,0), 3, 8, 0 );
-                cvShowImage("Camera_Output",frame);
+                retour = detect(scale / 10.0, UX, UY, x1, y1, x2, y2, lissage);
+
 			}
 		}
 	}
@@ -343,7 +342,6 @@ int detect(double scale, int uX, int uY, int *x1, int *y1, int *x2, int *y2, int
 				resy2 = (r->y + r->height) * scale;
 				resw = r->width * scale;
 				resh = r->height * scale;
-
 				// Initialize the tracking points
 				cvSetImageROI(gray, cvRect(r->x * scale, r->y * scale, r->width * scale, r->height * scale));
 				subimg = cvCreateImage(cvSize(r->width * scale, r->height * scale), gray->depth, gray->nChannels);
