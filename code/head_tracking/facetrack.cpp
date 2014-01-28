@@ -1,6 +1,11 @@
 #include "facetrack.hpp"
+#include <iostream>
+#include <iterator>
+#include <cctype>
 
 #define WEBCAM_WINDOW "webcam"
+
+using namespace std;
 
 Facetrack::Facetrack(string pCascadeFile)
     :capture_(0),
@@ -47,5 +52,26 @@ void Facetrack::getNewImg(void)
             rawFrame_.copyTo( frameCpy_ );
         else
             flip( rawFrame_, frameCpy_, 0 );
+    }
+}
+
+void Facetrack::detectHead(void)
+{
+    Mat gray;
+    cvtColor( frameCpy_, gray, CV_BGR2GRAY );
+    vector<Rect> faces;
+    cascade_.detectMultiScale( gray, faces,
+           1.1, 2, 0
+           |CV_HAAR_FIND_BIGGEST_OBJECT
+           |CV_HAAR_DO_ROUGH_SEARCH,
+           Size(30, 30));
+
+   vector<Rect>::const_iterator it;
+    for( it = faces.begin(); it != faces.end(); it++)
+    {
+        cout<<"x: "<<it->x;
+        cout<<", y: "<<it->y;
+        cout<<", w: "<<it->width;
+        cout<<", h: "<<it->height<<endl;
     }
 }

@@ -1,6 +1,4 @@
 #include <iostream>
-#include <cv.h>
-#include <highgui.h>
 #include <QApplication>
 
 //#include "head_tracking/facedetect.h"
@@ -55,6 +53,7 @@ int main(int argc, char *argv[])
         while(1)
         {
             tracker.getNewImg();
+            tracker.detectHead();
             tracker.showImg();
             if( waitKey( 10 ) >= 0 )
             {
