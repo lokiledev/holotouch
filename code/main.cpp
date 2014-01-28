@@ -55,6 +55,8 @@ int main(int argc, char *argv[])
             tracker.getNewImg();
             tracker.detectHead();
             tracker.showFace();
+            tracker.getCoordinates();
+            tracker.WTLeeTrackPosition(DEPTH_ADJUST/10000.0);
             if( waitKey( 10 ) >= 0 )
             {
                 break;

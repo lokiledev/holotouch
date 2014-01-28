@@ -28,9 +28,7 @@ LIBS += -lopencv_flann
 LIBS += -lopencv_nonfree
 
 SOURCES += main.cpp \
-    head_tracking/facedetect.cpp \
     head_tracking/facetrack.cpp
 
 HEADERS += \
-    head_tracking/facedetect.h \
     head_tracking/facetrack.hpp

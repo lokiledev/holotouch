@@ -11,13 +11,21 @@
 #define CASCADE "haarcascade_frontalface_alt2.xml"
 #define DATADIR "../code/ressources/"
 
+#define DEPTH_ADJUST 100 // between 1 and 1000, zoom effect
+#define SCALE 40 // scale of head between 10 and 100
+
 using namespace std;
 using namespace cv;
 
 class Facetrack : public QObject
 {
     Q_OBJECT
-
+public:
+    typedef struct {
+        float x;
+        float y;
+        float z;
+    }head_t;
 private:
     // Link to capture device ie Webcam.
     CvCapture* capture_;
@@ -38,6 +46,8 @@ private:
     bool newFaceFound_;
     double scale_;
 
+    head_t head_;
+
 public:
     Facetrack(string pCascadeFile = CASCADE);
     ~Facetrack();
@@ -48,6 +58,7 @@ public:
     void showFace(void);
     void detectHead(void);
     void getCoordinates(void);
+    void WTLeeTrackPosition (float radPerPix);
 
 signals:
     void signalNewHeadPos(CvPoint* pNewPos);

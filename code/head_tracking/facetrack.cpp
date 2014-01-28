@@ -14,7 +14,9 @@ Facetrack::Facetrack(string pCascadeFile)
       newFaceFound_(false),
       scale_(1.0)
 {
-
+    head_.x = 0;
+    head_.z = 1.0;
+    head_.y = 0;
 }
 
 Facetrack::~Facetrack()
@@ -125,4 +127,45 @@ void Facetrack::getCoordinates(void)
     y1_ = y1;
     x2_ = x2;
     y2_ = y2;
+}
+
+
+//Parameters initially from wiimote configuration of
+//Johny Chung Lee, adapted for the webcam here.
+
+#define EYE_DISTANCE 10 // between 1 and 1000 depending on resolution
+#define VERTICAL_ANGLE 0// allows to compensate if webcam is not parallel
+                        // with the screen
+#define WIIMOTE_ADJUST 0 // head height between -100 and 100
+#define CAMERA_ABOVE true // camera above the screen generally
+
+// Track head position with Johnny Chung Lee's trig stuff
+// XXX: Note that positions should be float values from 0-1024
+//      and 0-720 (width, height, respectively).
+void Facetrack::WTLeeTrackPosition (float radPerPix)
+{
+    // Where is the middle of the head?
+    float dx = (float)(x1_ - x2_), dy = (float)(y1_ - y2_);
+    float pointDist = (float)sqrt(dx * dx + dy * dy);
+    float angle = radPerPix * pointDist / 2.0;
+
+    /* Set the head distance in units of screen size
+     * creates more or less zoom
+     */
+    head_.z = ((float)EYE_DISTANCE / 1000.0) / (float)tan(angle);
+    float aX = (x1_ + x2_) / 2.0f, aY = (y1_ + y2_) / 2.0f;
+
+    // Set the head position horizontally
+    head_.x = (float)sin(radPerPix * (aX - 512.0)) * head_.z;
+    float relAng = (aY - 384.0) * radPerPix;
+
+    // Set the head height
+    head_.y = -0.5f + (float)sin((float)VERTICAL_ANGLE/ 100.0 + relAng) * head_.z;
+    // And adjust it to suit our needs
+    head_.y = head_.y + (float)WIIMOTE_ADJUST / 100.0;
+    // And if our Wiimote is above our screen, adjust appropriately
+    if (CAMERA_ABOVE)
+        head_.y = head_.y + 0.5;
+
+    cout<<"head: "<<head_.x<<" "<<head_.y<<" "<<head_.z<<endl;
 }
