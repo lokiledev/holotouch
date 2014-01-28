@@ -1,7 +1,8 @@
 #include <iostream>
 #include <cv.h>
 #include <highgui.h>
-#include <QCoreApplication>
+#include <QApplication>
+
 //#include "head_tracking/facedetect.h"
 #include "head_tracking/facetrack.hpp"
 
@@ -46,13 +47,20 @@ using namespace std;
 
 int main(int argc, char *argv[])
 {
-    QCoreApplication a(argc, argv);
+    QApplication a(argc, argv);
     Facetrack tracker;
     try
     {
         tracker.init();
-        tracker.getNewImg();
-        tracker.showImg();
+        while(1)
+        {
+            tracker.getNewImg();
+            tracker.showImg();
+            if( waitKey( 10 ) >= 0 )
+            {
+                break;
+            }
+        }
     }
     catch (string s)
     {
@@ -62,7 +70,6 @@ int main(int argc, char *argv[])
     {
         cerr<<"Something went wrong"<<endl;
     }
-
-    cvWaitKey(2000);
+    tracker.~Facetrack();
     return a.exec();
 }
