@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += core gui widgets
+QT       += core gui widgets opengl
 
 TARGET = holotouch
 CONFIG   -= app_bundle
@@ -31,4 +31,5 @@ SOURCES += main.cpp \
     head_tracking/facetrack.cpp
 
 HEADERS += \
-    head_tracking/facetrack.hpp
+    head_tracking/facetrack.hpp \
+    mainwindow.h
