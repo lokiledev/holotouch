@@ -1,0 +1,4 @@
+#ifndef FACETRACK_CPP
+#define FACETRACK_CPP
+
+#endif // FACETRACK_CPP

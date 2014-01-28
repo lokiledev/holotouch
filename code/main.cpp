@@ -2,10 +2,11 @@
 #include <cv.h>
 #include <highgui.h>
 #include <QCoreApplication>
-#include "head_tracking/facedetect.h"
+//#include "head_tracking/facedetect.h"
+#include "head_tracking/facetrack.hpp"
 
 using namespace std;
-int main(int argc, char *argv[])
+/*int main(int argc, char *argv[])
 {
     QCoreApplication a(argc, argv);
     int x1,y1,x2,y2;
@@ -18,7 +19,7 @@ int main(int argc, char *argv[])
     head.x = 0.0;
     head.y = 0.0;
     head.z = 1.0;
-    cvNamedWindow("Camera_Output", 1); //Create window
+    //cvNamedWindow("Camera_Output", 1); //Create window
     while(1)
     {
        headtrack(&x1, &y1, &x2, &y2,
@@ -38,7 +39,30 @@ int main(int argc, char *argv[])
             break; //If you hit ESC key loop will break.
         }
     }
-    cvDestroyWindow("Camera_Output"); //Destroy Window
+    //cvDestroyWindow("Camera_Output"); //Destroy Window
     endThread();
+    return a.exec();
+}*/
+
+int main(int argc, char *argv[])
+{
+    QCoreApplication a(argc, argv);
+    Facetrack tracker;
+    try
+    {
+        tracker.init();
+        tracker.getNewImg();
+        tracker.showImg();
+    }
+    catch (string s)
+    {
+        cerr<<"exception: "<<s<<endl;
+    }
+    catch (...)
+    {
+        cerr<<"Something went wrong"<<endl;
+    }
+
+    cvWaitKey(2000);
     return a.exec();
 }
