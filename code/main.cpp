@@ -54,7 +54,7 @@ int main(int argc, char *argv[])
         {
             tracker.getNewImg();
             tracker.detectHead();
-            tracker.showImg();
+            tracker.showFace();
             if( waitKey( 10 ) >= 0 )
             {
                 break;

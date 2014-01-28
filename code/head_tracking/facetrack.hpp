@@ -33,6 +33,10 @@ private:
 
     string cascadePath_;
     CascadeClassifier cascade_;
+    Rect face_;
+    Rect prevFace_;
+    bool newFaceFound_;
+    double scale_;
 
 public:
     Facetrack(string pCascadeFile = CASCADE);
@@ -40,8 +44,10 @@ public:
 
     void init(void);
     void getNewImg(void);
-    void showImg(void);
+    void showRaw(void);
+    void showFace(void);
     void detectHead(void);
+    void getCoordinates(void);
 
 signals:
     void signalNewHeadPos(CvPoint* pNewPos);
