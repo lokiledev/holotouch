@@ -13,9 +13,9 @@ private:
 
 public:
     Glview(int framesPerSecond = 0, QWidget *parent = 0);
-    void initializeGL() = 0;
-    void resizeGL(int width, int height) = 0;
-    void paintGL() = 0;
+    virtual void initializeGL() = 0;
+    virtual void resizeGL(int width, int height) = 0;
+    virtual void paintGL() = 0;
 
 public slots:
     void timeOutSlot();
