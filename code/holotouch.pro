@@ -29,8 +29,12 @@ LIBS += -lopencv_nonfree
 
 SOURCES += main.cpp \
     head_tracking/facetrack.cpp \
-    mainwindow.cpp
+    mainwindow.cpp \
+    glview.cpp \
+    glwidget.cpp
 
 HEADERS += \
     mainwindow.h \
-    head_tracking/facetrack.h
+    head_tracking/facetrack.h \
+    glview.h \
+    glwidget.h

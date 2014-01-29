@@ -2,6 +2,7 @@
 #include <QPushButton>
 #include <QLabel>
 #include <QTimer>
+#include <QHBoxLayout>
 
 #define DELAY_FPS 50
 
@@ -9,14 +10,19 @@ mainwindow::mainwindow(QWidget *parent) :
     QMainWindow(parent),
     webcamView_(0),
     timer_(0),
-    startBtn_(0)
+    startBtn_(0),
+    glView_(0)
 {
 }
 
 void mainwindow::init(void)
 {
+
+    QHBoxLayout* hLayout = new QHBoxLayout();
+
     webcamView_ = new QLabel("Face View",this);
-    setCentralWidget(webcamView_);
+    hLayout->addWidget(webcamView_);
+
     tracker_.init();
     setWindowTitle("Holotouch");
     QWidget::showMaximized();
@@ -25,30 +31,17 @@ void mainwindow::init(void)
     webcamView_->setScaledContents(true);
     timer_ = new QTimer(this);
 
+    glView_ = new glWidget(this);
+
+    hLayout->addWidget(glView_);
     startBtn_ = new QPushButton("Start processing", this);
     setMenuWidget(startBtn_);
     connect(startBtn_, SIGNAL(clicked()),this, SLOT(slotStart()));
     connect(timer_, SIGNAL(timeout()), this, SLOT(slotGetNewFrame()));
     connect(this,SIGNAL(signalNewFrame(QPixmap )), this, SLOT(slotUpdateFrame(QPixmap)));
-}
-
-void mainwindow::mainLoop(void)
-{
-    while(1)
-    {
-        tracker_.getNewImg();
-        tracker_.detectHead();
-        tracker_.drawFace();
-        //tracker_.showFace();
-        imgWebcam_ = tracker_.getPixmap();
-        webcamView_->setPixmap(imgWebcam_.scaled(webcamView_->width(), webcamView_->height(),Qt::KeepAspectRatio));
-        tracker_.getCoordinates();
-        tracker_.WTLeeTrackPosition(DEPTH_ADJUST/10000.0);
-        if( waitKey( 10 ) >= 0 )
-        {
-            break;
-        }
-    }
+    QWidget* centerWidget = new QWidget(this);
+    centerWidget->setLayout(hLayout);
+    setCentralWidget(centerWidget);
 }
 
 void mainwindow::slotStart()
@@ -65,6 +58,16 @@ void mainwindow::slotGetNewFrame()
     tracker_.getCoordinates();
     tracker_.WTLeeTrackPosition(DEPTH_ADJUST/10000.0);
     emit signalNewFrame(imgWebcam_);
+}
+
+void mainwindow::keyPressEvent(QKeyEvent *keyEvent)
+{
+    switch(keyEvent->key())
+    {
+        case Qt::Key_Escape:
+            close();
+            break;
+    }
 }
 
 void mainwindow::slotUpdateFrame(QPixmap pNewFrame)
