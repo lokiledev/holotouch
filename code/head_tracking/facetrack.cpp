@@ -1,4 +1,4 @@
-#include "facetrack.hpp"
+#include "facetrack.h"
 #include <iostream>
 #include <iterator>
 #include <cctype>
@@ -46,7 +46,7 @@ void Facetrack::showRaw(void)
     imshow(WEBCAM_WINDOW, rawFrame_);
 }
 
-void Facetrack::showFace(void)
+QPixmap Facetrack::showFace(void)
 {
     Point center;
     Scalar color =  CV_RGB(0,255,0);
@@ -64,7 +64,11 @@ void Facetrack::showFace(void)
     rectangle( frameCpy_, cvPoint(cvRound(face_.x*scale_), cvRound(face_.y*scale_)),
     cvPoint(cvRound((face_.x + face_.width-1)*scale_), cvRound((face_.y + face_.height-1)*scale_)),
     color, 3, 8, 0);
-    imshow(WEBCAM_WINDOW, frameCpy_);
+    IplImage* img = new IplImage;
+    img->imageData = (char*)frameCpy_.data;
+    QPixmap pix;
+    pix.fromImage(ipl2QImage(img));
+    return pix;
 }
 
 
@@ -168,4 +172,25 @@ void Facetrack::WTLeeTrackPosition (float radPerPix)
         head_.y = head_.y + 0.5;
 
     cout<<"head: "<<head_.x<<" "<<head_.y<<" "<<head_.z<<endl;
+}
+
+QImage Facetrack::ipl2QImage(const IplImage *newImage)
+{
+    QImage qtemp;
+    if (newImage && cvGetSize(newImage).width > 0)
+    {
+        int x;
+        int y;
+        char* data = newImage->imageData;
+
+        qtemp= QImage(newImage->width, newImage->height,QImage::Format_RGB32 );
+        for( y = 0; y < newImage->height; y++, data +=newImage->widthStep )
+            for( x = 0; x < newImage->width; x++)
+            {
+                uint *p = (uint*)qtemp.scanLine (y) + x;
+                *p = qRgb(data[x * newImage->nChannels+2],
+                          data[x * newImage->nChannels+1],data[x * newImage->nChannels]);
+            }
+    }
+    return qtemp;
 }

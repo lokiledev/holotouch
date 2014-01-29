@@ -1,24 +1,27 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
-#include <QtOpenGL>
-#include <QGLWidget>
+#include <QMainWindow>
+#include <QLabel>
+#include "head_tracking/facetrack.h"
 
-class glCubes : public QGLWidget
+class mainwindow : public QMainWindow
 {
     Q_OBJECT
-public:
-    explicit glCubes(int framesPerSecond = 0, QWidget *parent = 0, char *name = 0);
-    virtual void initializeGL() = 0;
-    virtual void resizeGL(int width, int height) = 0;
-    virtual void paintGL() = 0;
-    virtual void keyPressEvent( QKeyEvent *keyEvent );
-
-public slots:
-    virtual void timeOutSlot();
 
 private:
-    QTimer *t_Timer;
+    Facetrack tracker_;
+    QLabel* webcamView_;
+    QPixmap imgWebcam_;
+
+public:
+    mainwindow(QWidget *parent = 0);
+    void init(void);
+    void mainLoop(void);
+
+signals:
+
+public slots:
 
 };
 
