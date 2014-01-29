@@ -7,7 +7,6 @@
 #include "opencv2/imgproc/imgproc.hpp"
 
 #include <QObject>
-#include <QImage>
 #include <QPixmap>
 
 #define CASCADE "haarcascade_frontalface_alt2.xml"
@@ -57,11 +56,13 @@ public:
     void init(void);
     void getNewImg(void);
     void showRaw(void);
-    QPixmap showFace(void);
+    void drawFace(void);
+    void showFace(void);
     void detectHead(void);
+    QPixmap getPixmap(void);
     void getCoordinates(void);
     void WTLeeTrackPosition (float radPerPix);
-    QImage ipl2QImage(const IplImage *newImage);
+    QImage putImage(const Mat& mat);
 
 signals:
     void signalNewHeadPos(CvPoint* pNewPos);

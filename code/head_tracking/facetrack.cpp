@@ -22,7 +22,7 @@ Facetrack::Facetrack(string pCascadeFile)
 Facetrack::~Facetrack()
 {
     cvReleaseCapture(&capture_);
-    cvDestroyWindow(WEBCAM_WINDOW);
+    //cvDestroyWindow(WEBCAM_WINDOW);
 }
 
 void Facetrack::init(void)
@@ -37,8 +37,8 @@ void Facetrack::init(void)
     if ( !capture_ )
     {
         throw string("Couldn't open webcam");
-        namedWindow(WEBCAM_WINDOW);
     }
+    //namedWindow(WEBCAM_WINDOW);
 }
 
 void Facetrack::showRaw(void)
@@ -46,7 +46,7 @@ void Facetrack::showRaw(void)
     imshow(WEBCAM_WINDOW, rawFrame_);
 }
 
-QPixmap Facetrack::showFace(void)
+void Facetrack::drawFace(void)
 {
     Point center;
     Scalar color =  CV_RGB(0,255,0);
@@ -64,13 +64,17 @@ QPixmap Facetrack::showFace(void)
     rectangle( frameCpy_, cvPoint(cvRound(face_.x*scale_), cvRound(face_.y*scale_)),
     cvPoint(cvRound((face_.x + face_.width-1)*scale_), cvRound((face_.y + face_.height-1)*scale_)),
     color, 3, 8, 0);
-    IplImage* img = new IplImage;
-    img->imageData = (char*)frameCpy_.data;
-    QPixmap pix;
-    pix.fromImage(ipl2QImage(img));
-    return pix;
 }
 
+QPixmap Facetrack::getPixmap(void)
+{
+    return QPixmap::fromImage(putImage(frameCpy_));
+}
+
+void Facetrack::showFace(void)
+{
+    imshow(WEBCAM_WINDOW, frameCpy_);
+}
 
 void Facetrack::getNewImg(void)
 {
@@ -174,23 +178,33 @@ void Facetrack::WTLeeTrackPosition (float radPerPix)
     cout<<"head: "<<head_.x<<" "<<head_.y<<" "<<head_.z<<endl;
 }
 
-QImage Facetrack::ipl2QImage(const IplImage *newImage)
+QImage Facetrack::putImage(const Mat& mat)
 {
-    QImage qtemp;
-    if (newImage && cvGetSize(newImage).width > 0)
+    // 8-bits unsigned, NO. OF CHANNELS=1
+    if(mat.type()==CV_8UC1)
     {
-        int x;
-        int y;
-        char* data = newImage->imageData;
-
-        qtemp= QImage(newImage->width, newImage->height,QImage::Format_RGB32 );
-        for( y = 0; y < newImage->height; y++, data +=newImage->widthStep )
-            for( x = 0; x < newImage->width; x++)
-            {
-                uint *p = (uint*)qtemp.scanLine (y) + x;
-                *p = qRgb(data[x * newImage->nChannels+2],
-                          data[x * newImage->nChannels+1],data[x * newImage->nChannels]);
-            }
+        // Set the color table (used to translate colour indexes to qRgb values)
+        QVector<QRgb> colorTable;
+        for (int i=0; i<256; i++)
+            colorTable.push_back(qRgb(i,i,i));
+        // Copy input Mat
+        const uchar *qImageBuffer = (const uchar*)mat.data;
+        // Create QImage with same dimensions as input Mat
+        QImage img(qImageBuffer, mat.cols, mat.rows, mat.step, QImage::Format_Indexed8);
+        img.setColorTable(colorTable);
+        return img;
     }
-    return qtemp;
+    // 8-bits unsigned, NO. OF CHANNELS=3
+    if(mat.type()==CV_8UC3)
+    {
+        // Copy input Mat
+        const uchar *qImageBuffer = (const uchar*)mat.data;
+        // Create QImage with same dimensions as input Mat
+        QImage img(qImageBuffer, mat.cols, mat.rows, mat.step, QImage::Format_RGB888);
+        return img.rgbSwapped();
+    }
+    else
+    {
+        throw string("ERROR: Mat could not be converted to QImage.");
+    }
 }

@@ -46,25 +46,11 @@ using namespace std;
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
-   // Facetrack tracker;
     mainwindow window;
-    window.show();
     try
     {
-      /*  tracker.init();
-        while(1)
-        {
-            tracker.getNewImg();
-            tracker.detectHead();
-            tracker.showFace();
-            tracker.getCoordinates();
-            tracker.WTLeeTrackPosition(DEPTH_ADJUST/10000.0);
-            if( waitKey( 10 ) >= 0 )
-            {
-                break;
-            }
-        } */
-    window.mainLoop();
+        window.init();
+        window.show();
     }
     catch (string s)
     {
