@@ -13,19 +13,10 @@ typedef struct {
 #define DEFAULTWIDTH 1920 //screen info
 #define DEFAULTHEIGHT 1080
 
-// maximum view distance
-#define VIEWFARPLANE 500.0
-
-
 // Head tracking settings
 // =====================================
 
-// this defines the units we will be using for the coordinate system.
-// use #define UNITS xxx where xxx is the number of your units in a real meter.
-// for example, if you want to use centimeters, you would write #define UNITS 100.0
-#define UNITS 100.0
-// from here on, the units will be referred to as cm, since this is the default.
-
+#define MOVE_SCALE 2.0f
 // screen dimensions in mm
 #define SCREENHEIGHT 308.0
 #define SCREENWIDTH 406.4
@@ -46,7 +37,5 @@ typedef struct {
                         // with the screen
 #define WIIMOTE_ADJUST 0 // head height between -100 and 100
 #define CAMERA_ABOVE true // camera above the screen generally
-
-#define ANTI_FLICKER_TRESHOLD 20 // head must move more than 20 pixels to update
 
 #endif // TRACKING_DEFINES_H

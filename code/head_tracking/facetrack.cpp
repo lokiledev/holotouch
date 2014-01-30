@@ -13,7 +13,7 @@ Facetrack::Facetrack(string pCascadeFile)
       x1_(0),y1_(0),x2_(0),y2_(0),
       cascadePath_(pCascadeFile),
       newFaceFound_(false),
-      scale_(1.0),
+      scale_(MOVE_SCALE),
       fov_(WEBCAM_FOV)
 {
     head_.x = 0;
@@ -29,16 +29,19 @@ Facetrack::~Facetrack()
 void Facetrack::init(void)
 {
     capture_ = cvCaptureFromCAM(CV_CAP_ANY);
+
+    if ( !capture_ )
+    {
+        throw string("Couldn't open webcam, device busy.\nTry closing other webcam apps or reboot");
+    }
+
     string path = DATADIR;
     path += cascadePath_;
     if (!cascade_.load(path))
     {
         throw string("Cascade file not found: ") + string(path);
     }
-    if ( !capture_ )
-    {
-        throw string("Couldn't open webcam");
-    }
+
 }
 
 void Facetrack::showRaw(void)
@@ -55,15 +58,16 @@ void Facetrack::drawFace(void)
     double aspect_ratio = (double)face_.width/face_.height;
     if( 0.75 < aspect_ratio && aspect_ratio < 1.3 )
     {
-    center.x = cvRound((face_.x + face_.width*0.5)*scale_);
-    center.y = cvRound((face_.y + face_.height*0.5)*scale_);
-    radius = cvRound((face_.width + face_.height)*0.25*scale_);
+    center.x = cvRound((face_.x + face_.width*0.5));
+    center.y = cvRound((face_.y + face_.height*0.5));
+    radius = cvRound((face_.width + face_.height)*0.25);
     circle( frameCpy_, center, radius, color, 3, 8, 0 );
     }
     else
-    rectangle( frameCpy_, cvPoint(cvRound(face_.x*scale_), cvRound(face_.y*scale_)),
-    cvPoint(cvRound((face_.x + face_.width-1)*scale_), cvRound((face_.y + face_.height-1)*scale_)),
-    color, 3, 8, 0);
+    rectangle(frameCpy_, cvPoint(cvRound(face_.x), cvRound(face_.y)),
+              cvPoint(cvRound(face_.x + face_.width-1),
+                      cvRound(face_.y + face_.height-1)),
+              color, 3, 8, 0);
 }
 
 QPixmap Facetrack::getPixmap(void)
@@ -102,7 +106,7 @@ void Facetrack::detectHead(void)
            1.1, 2, 0
            |CV_HAAR_FIND_BIGGEST_OBJECT
            |CV_HAAR_DO_ROUGH_SEARCH,
-           Size(30, 30));
+           Size(10, 10));
 
     //take coordinates of first face found
     if( faces.size() > 0 )
@@ -156,11 +160,11 @@ void Facetrack::WTLeeTrackPosition (void)
     float aX = (x1_ + x2_) / 2.0f, aY = (y1_ + y2_) / 2.0f;
 
     // Set the head position horizontally
-    head_.x = (float)sin(radPerPix * (aX - camW2)) * head_.z;
+    head_.x = scale_*((float)sin(radPerPix * (aX - camW2)) * head_.z);
     float relAng = (aY - camH2) * radPerPix;
 
     // Set the head height
-    head_.y = -0.5f + (float)sin((float)VERTICAL_ANGLE/ 100.0 + relAng) * head_.z;
+    head_.y = scale_*(-0.5f + (float)sin((float)VERTICAL_ANGLE/ 100.0 + relAng) * head_.z);
 
     // we suppose in general webcam is above the screen like in most laptops
     if (CAMERA_ABOVE)
@@ -202,27 +206,16 @@ QImage Facetrack::putImage(const Mat& mat)
 }
 
 /*
- * update the position if it moved enough on average
+ * Smooth the movement
+ * TODO
  */
 void Facetrack::stabilize(Rect pNewFace)
 {
-    int avg = 0;
-    int newX1 = pNewFace.x,
-        newY1 = pNewFace.y,
-        newX2 = newX1 + pNewFace.width,
-        newY2 = newY1 + pNewFace.height;
-    avg = (abs(newX1 - x1_) +
-          abs(newY1 - y1_) +
-          abs(newX2 - x2_) +
-          abs(newY2 - y2_))/4;
-   if (avg >= ANTI_FLICKER_TRESHOLD)
-   {
-       prevFace_ = face_;
-       face_ = pNewFace;
-       newFaceFound_ = true;
-       getCoordinates();
-       WTLeeTrackPosition();
-   }
+    prevFace_ = face_;
+    face_ = pNewFace;
+    newFaceFound_ = true;
+    getCoordinates();
+    WTLeeTrackPosition();
 }
 
 bool Facetrack::isNewFace(void)

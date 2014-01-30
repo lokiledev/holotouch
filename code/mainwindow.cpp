@@ -85,11 +85,13 @@ void mainwindow::keyPressEvent(QKeyEvent *keyEvent)
             if (isFullScreen())
             {
                 showMaximized();
+                menuBar()->show();
             }
             else
                 close();
             break;
         case Qt::Key_F:
+            menuBar()->hide();
             showFullScreen();
             break;
         case Qt::Key_Z:
@@ -112,6 +114,9 @@ void mainwindow::keyPressEvent(QKeyEvent *keyEvent)
             break;
         case Qt::Key_H:
             webcamView_->isHidden()? webcamView_->show() : webcamView_->hide();
+            break;
+        case Qt::Key_Space:
+            slotStart();
             break;
     }
 }
