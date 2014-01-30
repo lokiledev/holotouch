@@ -5,9 +5,9 @@
 glWidget::glWidget(QWidget *parent) :
     Glview(60,parent)
 {
-    head_.x = 1.0;
-    head_.y = 1.0;
-    head_.z = -1.0;
+    head_.x = 0.0;
+    head_.y = 0.0;
+    head_.z = 1.0;
 }
 
 void glWidget::initializeGL()
@@ -38,10 +38,6 @@ void glWidget::resizeGL(int width, int height)
 
 void glWidget::paintGL()
 {
-    double nearplane = 0.05f;
-    //glTranslatef(-1.5f, 0.0f, -6.0f);
-    //glRotatef(f_x_, 1.0, 0.3, 0.1);
-
     // ============================
     // Render Scene
     // ============================
@@ -58,13 +54,7 @@ void glWidget::paintGL()
     glLoadIdentity();
 
 
-    glFrustum(	(H_SCREENEDGE-head_.x)*nearplane/head_.z,  // left
-            (-H_SCREENEDGE-head_.x)*nearplane/head_.z, // right
-            (-V_SCREENEDGE-head_.y)*nearplane/head_.z, // bottom
-            (V_SCREENEDGE-head_.y)*nearplane/head_.z,  // top
-            nearplane,		// zNear
-            VIEWFARPLANE);	// zFar
-
+    gluLookAt(head_.x,head_.y,head_.z,0.0f, 0.0f, 0.0f, 0.0f, 1.0f,0.0f);
 
     // Objects
     // =======
@@ -72,7 +62,7 @@ void glWidget::paintGL()
     glLoadIdentity();
 
     // Need to translate the model geometry due to the camera position transformation.
-    glTranslatef(-head_.x,-head_.y,-head_.z);
+    //glTranslatef(-head_.x,-head_.y,-head_.z);
 
     // load texture
     glBindTexture(GL_TEXTURE_2D, texture_[0]);
@@ -109,6 +99,15 @@ void glWidget::paintGL()
     glTexCoord2f(1.0f, 1.0f); glVertex3f(-1.0f,  1.0f,  1.0f);
     glTexCoord2f(0.0f, 1.0f); glVertex3f(-1.0f,  1.0f, -1.0f);
     glEnd();
+
+  /*  glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+    //glTranslatef(0.0f,0.0f,-2.0f);
+    glPointSize(20.0f);
+    glBegin(GL_POINT);
+    glVertex3f(0,0,0);
+    glVertex3f(head_.x, head_.y, head_.z);
+    glEnd();*/
 }
 
 void glWidget::loadTexture(QString textureName)

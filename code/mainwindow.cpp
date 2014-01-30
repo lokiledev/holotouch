@@ -32,8 +32,8 @@ void mainwindow::init(void)
     timer_ = new QTimer(this);
 
     glView_ = new glWidget(this);
-
     hLayout->addWidget(glView_);
+
     startBtn_ = new QPushButton("Start processing", this);
     setMenuWidget(startBtn_);
     connect(startBtn_, SIGNAL(clicked()),this, SLOT(slotStart()));
@@ -73,22 +73,25 @@ void mainwindow::keyPressEvent(QKeyEvent *keyEvent)
         case Qt::Key_F:
             showFullScreen();
             break;
-        case Qt::Key_Up:
-            if ( glView_ )
-                glView_->slotMoveHead(1, 0.5);
+        case Qt::Key_Z:
+            glView_->slotMoveHead(1, 0.005);
             break;
-        case Qt::Key_Down:
-        if ( glView_ )
-            glView_->slotMoveHead(1, -0.5);
+        case Qt::Key_S:
+            glView_->slotMoveHead(1, -0.005);
             break;
-        case Qt::Key_Left:
-        if ( glView_ )
-            glView_->slotMoveHead(0, -0.5);
+        case Qt::Key_Q:
+            glView_->slotMoveHead(0, -0.005);
             break;
-        case Qt::Key_Right:
-        if ( glView_ )
-            glView_->slotMoveHead(0, 0.5);
+        case Qt::Key_D:
+            glView_->slotMoveHead(0, 0.005);
             break;
+        case Qt::Key_A:
+            glView_->slotMoveHead(2, -0.005);
+            break;
+        case Qt::Key_E:
+            glView_->slotMoveHead(2, 0.005);
+            break;
+
     }
 }
 
