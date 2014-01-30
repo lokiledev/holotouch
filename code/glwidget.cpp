@@ -52,7 +52,7 @@ void glWidget::paintGL()
 
     glLoadIdentity();
 
-    gluLookAt(head_.x,head_.y,head_.z,0.0f, 0.0f, 0.0f, 0.0f, 1.0f,0.0f);
+    gluLookAt(head_.x,head_.y,head_.z, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f,0.0f);
 
     // Objects
     // =======
@@ -128,7 +128,12 @@ void glWidget::loadTexture(QString textureName)
 
 void glWidget::slotNewHead(head_t pPos)
 {
-    head_ = pPos;
+    /*We inverse axes to compensate head position relative
+     * to the cube.
+     */
+    head_.x = -pPos.x;
+    head_.y = -pPos.y;
+    head_.z = pPos.z;
 }
 
 void glWidget::slotMoveHead(int pAxis, float pDelta)
