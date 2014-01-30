@@ -74,22 +74,22 @@ void mainwindow::keyPressEvent(QKeyEvent *keyEvent)
             showFullScreen();
             break;
         case Qt::Key_Z:
-            glView_->slotMoveHead(1, 0.005);
+            glView_->slotMoveHead(1, 0.05);
             break;
         case Qt::Key_S:
-            glView_->slotMoveHead(1, -0.005);
+            glView_->slotMoveHead(1, -0.05);
             break;
         case Qt::Key_Q:
-            glView_->slotMoveHead(0, -0.005);
+            glView_->slotMoveHead(0, -0.05);
             break;
         case Qt::Key_D:
-            glView_->slotMoveHead(0, 0.005);
+            glView_->slotMoveHead(0, 0.05);
             break;
         case Qt::Key_A:
-            glView_->slotMoveHead(2, -0.005);
+            glView_->slotMoveHead(2, -0.05);
             break;
         case Qt::Key_E:
-            glView_->slotMoveHead(2, 0.005);
+            glView_->slotMoveHead(2, 0.05);
             break;
 
     }

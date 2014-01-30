@@ -17,7 +17,7 @@ Facetrack::Facetrack(string pCascadeFile)
       fov_(WEBCAM_FOV)
 {
     head_.x = 0;
-    head_.z = 1.0;
+    head_.z = 5.0;
     head_.y = 0;
 }
 
@@ -162,7 +162,7 @@ void Facetrack::WTLeeTrackPosition (void)
     /* Set the head distance in units of screen size
      * creates more or less zoom
      */
-    head_.z = (float)((AVG_HEAD_MM / 2) / std::tan(angle)) / (float)SCREENHEIGHT;
+    head_.z = (float)(DEPTH_ADJUST*((AVG_HEAD_MM / 2) / std::tan(angle)) / (float)SCREENHEIGHT);
 
     //average distance = center of the head
     float aX = (x1_ + x2_) / 2.0f, aY = (y1_ + y2_) / 2.0f;
