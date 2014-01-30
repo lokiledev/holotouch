@@ -5,8 +5,8 @@
 #include "glwidget.h"
 
 class QLabel;
-class QPushButton;
 class QTimer;
+class QMenu;
 
 #include "head_tracking/facetrack.h"
 
@@ -19,7 +19,7 @@ private:
     QLabel* webcamView_;
     QPixmap imgWebcam_;
     QTimer* timer_;
-    QPushButton* startBtn_;
+    QMenu* menu_;
     glWidget* glView_;
 
 public:

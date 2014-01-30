@@ -3,6 +3,7 @@
 #include <QLabel>
 #include <QTimer>
 #include <QHBoxLayout>
+#include <QMenu>
 
 #define DELAY_FPS 50
 
@@ -10,7 +11,7 @@ mainwindow::mainwindow(QWidget *parent) :
     QMainWindow(parent),
     webcamView_(0),
     timer_(0),
-    startBtn_(0),
+    menu_(0),
     glView_(0)
 {
 }
@@ -34,9 +35,17 @@ void mainwindow::init(void)
     glView_ = new glWidget(this);
     hLayout->addWidget(glView_);
 
-    startBtn_ = new QPushButton("Start processing", this);
-    setMenuWidget(startBtn_);
-    connect(startBtn_, SIGNAL(clicked()),this, SLOT(slotStart()));
+
+    menu_ = menuBar()->addMenu("&Display");
+    QAction* actionStart = new QAction("Start/Stop", this);
+    QAction* actionHide = new QAction("Hide Webcam", this);
+
+    menu_->addAction(actionStart);
+    menu_->addAction(actionHide);
+
+    connect(actionStart, SIGNAL(triggered()), this, SLOT(slotStart()));
+    connect(actionHide, SIGNAL(triggered()), webcamView_, SLOT(hide()));
+
     connect(timer_, SIGNAL(timeout()), this, SLOT(slotGetNewFrame()));
     connect(this,SIGNAL(signalNewFrame(QPixmap )), this, SLOT(slotUpdateFrame(QPixmap)));
 
@@ -49,7 +58,10 @@ void mainwindow::init(void)
 
 void mainwindow::slotStart()
 {
-    timer_->start(DELAY_FPS);
+    if (timer_->isActive())
+        timer_->stop();
+    else
+        timer_->start(DELAY_FPS);
 }
 
 void mainwindow::slotGetNewFrame()
@@ -68,7 +80,12 @@ void mainwindow::keyPressEvent(QKeyEvent *keyEvent)
     switch(keyEvent->key())
     {
         case Qt::Key_Escape:
-            close();
+            if (isFullScreen())
+            {
+                showMaximized();
+            }
+            else
+                close();
             break;
         case Qt::Key_F:
             showFullScreen();
@@ -91,7 +108,9 @@ void mainwindow::keyPressEvent(QKeyEvent *keyEvent)
         case Qt::Key_E:
             glView_->slotMoveHead(2, 0.05);
             break;
-
+        case Qt::Key_H:
+            webcamView_->isHidden()? webcamView_->show() : webcamView_->hide();
+            break;
     }
 }
 
