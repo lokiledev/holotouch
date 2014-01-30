@@ -36,8 +36,7 @@ typedef struct {
 
 #define WEBCAM_FOV (M_PI_4) // 45° of field of view for the webcam
 
-#define DEPTH_ADJUST 2.0 // between 1 and 1000, zoom effect
-#define SCALE 40 // scale of head between 10 and 100
+#define DEPTH_ADJUST 5.0 //affects distance from scene
 
 //Parameters initially from wiimote configuration of
 //Johny Chung Lee, adapted for the webcam here.

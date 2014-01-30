@@ -31,7 +31,7 @@ void glWidget::resizeGL(int width, int height)
     glViewport(0, 0, width, height);
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    gluPerspective(45.0f, (GLfloat)width/(GLfloat)height, 0.0f, -100.0f);
+    gluPerspective(45.0f, (GLfloat)width/(GLfloat)height, 1.0f, -100.0f);
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
 }
@@ -48,21 +48,19 @@ void glWidget::paintGL()
     // disable lighting
     glDisable(GL_LIGHTING);
 
-    // Projection Transformation
-    // =========================
- /*  glMatrixMode(GL_PROJECTION);
+    glMatrixMode(GL_MODELVIEW);
+
     glLoadIdentity();
 
-
-    gluLookAt(head_.x,head_.y,head_.z,0.0f, 0.0f, -2.0f, 0.0f, 1.0f,0.0f);
+    gluLookAt(head_.x,head_.y,head_.z,0.0f, 0.0f, 0.0f, 0.0f, 1.0f,0.0f);
 
     // Objects
     // =======
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
+
+    //glLoadIdentity();
 
     // Need to translate the model geometry due to the camera position transformation.
-    glTranslatef(-head_.x,-head_.y,-head_.z);
+    //glTranslatef(-head_.x,-head_.y,-head_.z);
 
     // load texture
     glBindTexture(GL_TEXTURE_2D, texture_[0]);
@@ -98,18 +96,20 @@ void glWidget::paintGL()
     glTexCoord2f(1.0f, 0.0f); glVertex3f(-1.0f, -1.0f,  1.0f);
     glTexCoord2f(1.0f, 1.0f); glVertex3f(-1.0f,  1.0f,  1.0f);
     glTexCoord2f(0.0f, 1.0f); glVertex3f(-1.0f,  1.0f, -1.0f);
-    glEnd();*/
+    glEnd();
+
+    /*
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
     //gluLookAt(0.0f,0.0f,5.0f,0.0f, 0.0f, 0.0f, 0.0f,1.0f,0.0f);
-    gluLookAt(head_.x,head_.y,head_.z,0.0f, 0.0f, 0.0f, 0.0f, 1.0f,0.0f);
+    gluLookAt(head_.x,head_.y,head_.z, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f,0.0f);
     glBegin(GL_QUADS);
     // Face Avant
     glTexCoord2f(0.0f, 0.0f); glVertex3f(-1.0f, -1.0f,  0.0f);
     glTexCoord2f(1.0f, 0.0f); glVertex3f( 1.0f, -1.0f,  0.0f);
     glTexCoord2f(1.0f, 1.0f); glVertex3f( 1.0f,  1.0f,  0.0f);
     glTexCoord2f(0.0f, 1.0f); glVertex3f(-1.0f,  1.0f,  0.0f);
-    glEnd();
+    glEnd();*/
 
 }
 
