@@ -4,13 +4,15 @@
 #include <QImage>
 
 #include "glview.h"
+#include "tracking_defines.h"
 
 class glWidget : public Glview
 {
     Q_OBJECT
 private:
     GLuint texture_[1];
-    float f_x_;
+    //head positions in cm relative to screen center.
+    head_t head_;
 
 public:
     glWidget(QWidget *parent = 0);
@@ -22,7 +24,8 @@ public:
 signals:
 
 public slots:
-
+    void slotNewHead(head_t pPos);
+    void slotMoveHead(int pAxis, float pDelta);
 };
 
 #endif // GLWIDGET_H

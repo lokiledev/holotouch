@@ -39,9 +39,12 @@ void mainwindow::init(void)
     connect(startBtn_, SIGNAL(clicked()),this, SLOT(slotStart()));
     connect(timer_, SIGNAL(timeout()), this, SLOT(slotGetNewFrame()));
     connect(this,SIGNAL(signalNewFrame(QPixmap )), this, SLOT(slotUpdateFrame(QPixmap)));
+
     QWidget* centerWidget = new QWidget(this);
     centerWidget->setLayout(hLayout);
     setCentralWidget(centerWidget);
+
+    connect(&tracker_, SIGNAL(signalNewHeadPos(head_t)), glView_, SLOT(slotNewHead(head_t)));
 }
 
 void mainwindow::slotStart()
@@ -67,8 +70,28 @@ void mainwindow::keyPressEvent(QKeyEvent *keyEvent)
         case Qt::Key_Escape:
             close();
             break;
+        case Qt::Key_F:
+            showFullScreen();
+            break;
+        case Qt::Key_Up:
+            if ( glView_ )
+                glView_->slotMoveHead(1, 0.5);
+            break;
+        case Qt::Key_Down:
+        if ( glView_ )
+            glView_->slotMoveHead(1, -0.5);
+            break;
+        case Qt::Key_Left:
+        if ( glView_ )
+            glView_->slotMoveHead(0, -0.5);
+            break;
+        case Qt::Key_Right:
+        if ( glView_ )
+            glView_->slotMoveHead(0, 0.5);
+            break;
     }
 }
+
 
 void mainwindow::slotUpdateFrame(QPixmap pNewFrame)
 {

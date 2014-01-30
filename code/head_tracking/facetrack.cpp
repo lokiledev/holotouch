@@ -176,6 +176,7 @@ void Facetrack::WTLeeTrackPosition (float radPerPix)
         head_.y = head_.y + 0.5;
 
     cout<<"head: "<<head_.x<<" "<<head_.y<<" "<<head_.z<<endl;
+    emit signalNewHeadPos(head_);
 }
 
 QImage Facetrack::putImage(const Mat& mat)

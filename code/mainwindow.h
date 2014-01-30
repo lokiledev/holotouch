@@ -26,10 +26,11 @@ public:
     mainwindow(QWidget *parent = 0);
     void init(void);
     void mainLoop(void);
-    void keyPressEvent( QKeyEvent *keyEvent );
+    void keyPressEvent( QKeyEvent *keyEvent);
 
 signals:
     void signalNewFrame(QPixmap pNewFrame);
+    void signalNewHeadPos(head_t head);
 
 public slots:
     void slotStart();

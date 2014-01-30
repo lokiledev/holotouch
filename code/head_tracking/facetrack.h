@@ -9,6 +9,8 @@
 #include <QObject>
 #include <QPixmap>
 
+#include "tracking_defines.h"
+
 #define CASCADE "haarcascade_frontalface_alt2.xml"
 #define DATADIR "../code/ressources/"
 
@@ -22,11 +24,7 @@ class Facetrack : public QObject
 {
     Q_OBJECT
 public:
-    typedef struct {
-        float x;
-        float y;
-        float z;
-    }head_t;
+
 private:
     // Link to capture device ie Webcam.
     CvCapture* capture_;
@@ -65,7 +63,7 @@ public:
     QImage putImage(const Mat& mat);
 
 signals:
-    void signalNewHeadPos(CvPoint* pNewPos);
+    void signalNewHeadPos(head_t pNewPos);
 
 };
 

@@ -38,4 +38,5 @@ HEADERS += \
     mainwindow.h \
     head_tracking/facetrack.h \
     glview.h \
-    glwidget.h
+    glwidget.h \
+    tracking_defines.h
