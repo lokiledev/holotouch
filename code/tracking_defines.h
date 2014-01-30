@@ -10,7 +10,7 @@ typedef struct {
 
 // Settings for rendering engine
 // ==================================================================================
-#define DEFAULTWIDTH 1920
+#define DEFAULTWIDTH 1920 //screen info
 #define DEFAULTHEIGHT 1080
 
 // maximum view distance
@@ -26,12 +26,26 @@ typedef struct {
 #define UNITS 100.0
 // from here on, the units will be referred to as cm, since this is the default.
 
-// screen dimensions in cm
-#define SCREENHEIGHT 30.80
-#define SCREENWIDTH 40.64
+// screen dimensions in mm
+#define SCREENHEIGHT 308.0
+#define SCREENWIDTH 406.4
 
 // distance from origin (center of screen) to vertical screen edges, horizontal screen edges (in cm)
 #define V_SCREENEDGE SCREENHEIGHT/2
 #define H_SCREENEDGE SCREENWIDTH/2
+
+#define WEBCAM_FOV (M_PI_4) // 45° of field of view for the webcam
+
+#define DEPTH_ADJUST 100 // between 1 and 1000, zoom effect
+#define SCALE 40 // scale of head between 10 and 100
+
+//Parameters initially from wiimote configuration of
+//Johny Chung Lee, adapted for the webcam here.
+
+#define AVG_HEAD_MM 150 //head width to change
+#define VERTICAL_ANGLE 0// allows to compensate if webcam is not parallel
+                        // with the screen
+#define WIIMOTE_ADJUST 0 // head height between -100 and 100
+#define CAMERA_ABOVE true // camera above the screen generally
 
 #endif // TRACKING_DEFINES_H

@@ -14,9 +14,6 @@
 #define CASCADE "haarcascade_frontalface_alt2.xml"
 #define DATADIR "../code/ressources/"
 
-#define DEPTH_ADJUST 100 // between 1 and 1000, zoom effect
-#define SCALE 40 // scale of head between 10 and 100
-
 using namespace std;
 using namespace cv;
 
@@ -44,6 +41,7 @@ private:
     Rect prevFace_;
     bool newFaceFound_;
     double scale_;
+    double fov_;
 
     head_t head_;
 
@@ -59,7 +57,7 @@ public:
     void detectHead(void);
     QPixmap getPixmap(void);
     void getCoordinates(void);
-    void WTLeeTrackPosition (float radPerPix);
+    void WTLeeTrackPosition ();
     QImage putImage(const Mat& mat);
 
 signals:

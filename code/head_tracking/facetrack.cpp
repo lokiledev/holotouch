@@ -2,6 +2,7 @@
 #include <iostream>
 #include <iterator>
 #include <cctype>
+#include <math.h>
 
 #define WEBCAM_WINDOW "webcam"
 
@@ -12,7 +13,8 @@ Facetrack::Facetrack(string pCascadeFile)
       x1_(0),y1_(0),x2_(0),y2_(0),
       cascadePath_(pCascadeFile),
       newFaceFound_(false),
-      scale_(1.0)
+      scale_(1.0),
+      fov_(WEBCAM_FOV)
 {
     head_.x = 0;
     head_.z = 1.0;
@@ -137,22 +139,22 @@ void Facetrack::getCoordinates(void)
     y2_ = y2;
 }
 
-
-//Parameters initially from wiimote configuration of
-//Johny Chung Lee, adapted for the webcam here.
-
-#define EYE_DISTANCE 10 // between 1 and 1000 depending on resolution
-#define VERTICAL_ANGLE 0// allows to compensate if webcam is not parallel
-                        // with the screen
-#define WIIMOTE_ADJUST 0 // head height between -100 and 100
-#define CAMERA_ABOVE true // camera above the screen generally
-
+/* Convert the rectangle found in 2D to 3D pos in unit box
+ */
 // Track head position with Johnny Chung Lee's trig stuff
 // XXX: Note that positions should be float values from 0-1024
 //      and 0-720 (width, height, respectively).
-void Facetrack::WTLeeTrackPosition (float radPerPix)
+void Facetrack::WTLeeTrackPosition (void)
 {
-    // Where is the middle of the head?
+    /*Find nb of rad/pixel from webcam resolution
+     * and webcam field of view (supposed 45° by default)
+    */
+    int fovWidth = frameCpy_.cols;
+    float camW2 = (float)frameCpy_.cols/2;
+    float camH2 = (float)frameCpy_.rows/2;
+    float radPerPix = (fov_/fovWidth);
+
+    //get the size of the head in degrees (relative to the field of view)
     float dx = (float)(x1_ - x2_), dy = (float)(y1_ - y2_);
     float pointDist = (float)sqrt(dx * dx + dy * dy);
     float angle = radPerPix * pointDist / 2.0;
@@ -160,20 +162,21 @@ void Facetrack::WTLeeTrackPosition (float radPerPix)
     /* Set the head distance in units of screen size
      * creates more or less zoom
      */
-    head_.z = ((float)EYE_DISTANCE / 1000.0) / (float)tan(angle);
+    head_.z = (float)((AVG_HEAD_MM / 2) / std::tan(angle)) / (float)SCREENHEIGHT;
+
+    //average distance = center of the head
     float aX = (x1_ + x2_) / 2.0f, aY = (y1_ + y2_) / 2.0f;
 
     // Set the head position horizontally
-    head_.x = (float)sin(radPerPix * (aX - 512.0)) * head_.z;
-    float relAng = (aY - 384.0) * radPerPix;
+    head_.x = (float)sin(radPerPix * (aX - camW2)) * head_.z;
+    float relAng = (aY - camH2) * radPerPix;
 
     // Set the head height
     head_.y = -0.5f + (float)sin((float)VERTICAL_ANGLE/ 100.0 + relAng) * head_.z;
-    // And adjust it to suit our needs
-    head_.y = head_.y + (float)WIIMOTE_ADJUST / 100.0;
-    // And if our Wiimote is above our screen, adjust appropriately
+
+    // we suppose in general webcam is above the screen like in most laptops
     if (CAMERA_ABOVE)
-        head_.y = head_.y + 0.5;
+        head_.y = head_.y + 0.5f + (float)sin(relAng)*head_.z;
 
     cout<<"head: "<<head_.x<<" "<<head_.y<<" "<<head_.z<<endl;
     emit signalNewHeadPos(head_);

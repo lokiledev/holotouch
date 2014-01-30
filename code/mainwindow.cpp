@@ -59,7 +59,7 @@ void mainwindow::slotGetNewFrame()
     tracker_.drawFace();
     imgWebcam_ = tracker_.getPixmap();
     tracker_.getCoordinates();
-    tracker_.WTLeeTrackPosition(DEPTH_ADJUST/10000.0);
+    tracker_.WTLeeTrackPosition();
     emit signalNewFrame(imgWebcam_);
 }
 
