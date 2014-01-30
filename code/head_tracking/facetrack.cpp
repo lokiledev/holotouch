@@ -24,7 +24,6 @@ Facetrack::Facetrack(string pCascadeFile)
 Facetrack::~Facetrack()
 {
     cvReleaseCapture(&capture_);
-    //cvDestroyWindow(WEBCAM_WINDOW);
 }
 
 void Facetrack::init(void)
@@ -40,7 +39,6 @@ void Facetrack::init(void)
     {
         throw string("Couldn't open webcam");
     }
-    //namedWindow(WEBCAM_WINDOW);
 }
 
 void Facetrack::showRaw(void)
@@ -96,6 +94,7 @@ void Facetrack::detectHead(void)
     Mat gray;
     cvtColor( frameCpy_, gray, CV_BGR2GRAY );
     vector<Rect> faces;
+    newFaceFound_ = false;
     /*We use the haarcascade classifier
      * only take the first (biggest) face found
      */
@@ -105,22 +104,11 @@ void Facetrack::detectHead(void)
            |CV_HAAR_DO_ROUGH_SEARCH,
            Size(30, 30));
 
-/* //for debug purposes
-   vector<Rect>::const_iterator it;
-    for( it = faces.begin(); it != faces.end(); it++)
-    {
-        cout<<"x: "<<it->x;
-        cout<<", y: "<<it->y;
-        cout<<", w: "<<it->width;
-        cout<<", h: "<<it->height<<endl;
-    }
-*/
     //take coordinates of first face found
     if( faces.size() > 0 )
     {
-        prevFace_ = face_;
-        face_ = faces[0];
-        newFaceFound_ = true;
+        stabilize(faces[0]);
+        getCoordinates();
     }
  }
 
@@ -211,4 +199,33 @@ QImage Facetrack::putImage(const Mat& mat)
     {
         throw string("ERROR: Mat could not be converted to QImage.");
     }
+}
+
+/*
+ * update the position if it moved enough on average
+ */
+void Facetrack::stabilize(Rect pNewFace)
+{
+    int avg = 0;
+    int newX1 = pNewFace.x,
+        newY1 = pNewFace.y,
+        newX2 = newX1 + pNewFace.width,
+        newY2 = newY1 + pNewFace.height;
+    avg = (abs(newX1 - x1_) +
+          abs(newY1 - y1_) +
+          abs(newX2 - x2_) +
+          abs(newY2 - y2_))/4;
+   if (avg >= ANTI_FLICKER_TRESHOLD)
+   {
+       prevFace_ = face_;
+       face_ = pNewFace;
+       newFaceFound_ = true;
+       getCoordinates();
+       WTLeeTrackPosition();
+   }
+}
+
+bool Facetrack::isNewFace(void)
+{
+    return newFaceFound_;
 }

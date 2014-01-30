@@ -47,4 +47,6 @@ typedef struct {
 #define WIIMOTE_ADJUST 0 // head height between -100 and 100
 #define CAMERA_ABOVE true // camera above the screen generally
 
+#define ANTI_FLICKER_TRESHOLD 20 // head must move more than 20 pixels to update
+
 #endif // TRACKING_DEFINES_H

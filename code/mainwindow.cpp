@@ -4,6 +4,7 @@
 #include <QTimer>
 #include <QHBoxLayout>
 #include <QMenu>
+#include <QDialog>
 
 #define DELAY_FPS 50
 
@@ -68,11 +69,12 @@ void mainwindow::slotGetNewFrame()
 {
     tracker_.getNewImg();
     tracker_.detectHead();
-    tracker_.drawFace();
-    imgWebcam_ = tracker_.getPixmap();
-    tracker_.getCoordinates();
-    tracker_.WTLeeTrackPosition();
-    emit signalNewFrame(imgWebcam_);
+    if (tracker_.isNewFace())
+    {
+        tracker_.drawFace();
+        imgWebcam_ = tracker_.getPixmap();
+        emit signalNewFrame(imgWebcam_);
+    }
 }
 
 void mainwindow::keyPressEvent(QKeyEvent *keyEvent)
@@ -118,4 +120,9 @@ void mainwindow::keyPressEvent(QKeyEvent *keyEvent)
 void mainwindow::slotUpdateFrame(QPixmap pNewFrame)
 {
     webcamView_->setPixmap(pNewFrame.scaled(webcamView_->width(), webcamView_->height(),Qt::KeepAspectRatio));
+}
+
+void mainwindow::slotAbout()
+{
+    //TODO: about dialog
 }

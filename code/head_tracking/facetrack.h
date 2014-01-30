@@ -59,6 +59,8 @@ public:
     void getCoordinates(void);
     void WTLeeTrackPosition ();
     QImage putImage(const Mat& mat);
+    void stabilize(Rect pNewFace);
+    bool isNewFace(void);
 
 signals:
     void signalNewHeadPos(head_t pNewPos);
