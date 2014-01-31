@@ -9,6 +9,8 @@
 class glWidget : public Glview
 {
     Q_OBJECT
+public:
+    typedef enum {CRATE,NONE = -1} texId_t;
 private:
     GLuint texture_[1];
     //head positions in cm relative to screen center.
@@ -20,7 +22,11 @@ public:
     void resizeGL(int width, int height);
     void paintGL();
     void loadTexture(QString textureName);
-
+    void drawCube(texId_t PtextureId,
+                  float pCenterX,
+                  float pCenterY,
+                  float pCenterZ,
+                  float pSize);
 signals:
 
 public slots:
