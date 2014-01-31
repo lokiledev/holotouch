@@ -38,4 +38,6 @@ typedef struct {
 #define WIIMOTE_ADJUST 0 // head height between -100 and 100
 #define CAMERA_ABOVE true // camera above the screen generally
 
+#define NB_SAMPLE_FILTER 10 //weighted average of N previous values
+
 #endif // TRACKING_DEFINES_H

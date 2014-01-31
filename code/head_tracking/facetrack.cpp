@@ -8,10 +8,42 @@
 
 using namespace std;
 
+
+Facetrack::coord_t::coord_t(int pX1, int pY1, int pX2, int pY2)
+{
+    x1 = pX1;
+    y1 = pY1;
+    x2 = pX2;
+    y2 = pY2;
+}
+
+Facetrack::coord_t::coord_t(Rect pRect)
+{
+    x1 = pRect.x;
+    y1 = pRect.y;
+    x2 = pRect.x + pRect.width;
+    y2 = pRect.y + pRect.height;
+}
+
+Rect Facetrack::coord_t::toRect(void)
+{
+    Rect res;
+    res.x = x1;
+    res.y = y1;
+    res.width = x2-x1;
+    res.height = y2-y1;
+    return res;
+}
+
+/*only one for all the instances
+ * all ones = simple average
+ */
+const int Facetrack::weights_[NB_SAMPLE_FILTER]= {1,1,1,1,1,1,1,1,1,1};
+
 Facetrack::Facetrack(string pCascadeFile)
     :capture_(0),
-      x1_(0),y1_(0),x2_(0),y2_(0),
       cascadePath_(pCascadeFile),
+      currentFace_(0,0,0,0),
       newFaceFound_(false),
       scale_(MOVE_SCALE),
       fov_(WEBCAM_FOV)
@@ -54,19 +86,19 @@ void Facetrack::drawFace(void)
     Point center;
     Scalar color =  CV_RGB(0,255,0);
     int radius;
-
-    double aspect_ratio = (double)face_.width/face_.height;
+    Rect face = currentFace_.toRect();
+    double aspect_ratio = (double)face.width/face.height;
     if( 0.75 < aspect_ratio && aspect_ratio < 1.3 )
     {
-    center.x = cvRound((face_.x + face_.width*0.5));
-    center.y = cvRound((face_.y + face_.height*0.5));
-    radius = cvRound((face_.width + face_.height)*0.25);
+    center.x = cvRound((face.x + face.width*0.5));
+    center.y = cvRound((face.y + face.height*0.5));
+    radius = cvRound((face.width + face.height)*0.25);
     circle( frameCpy_, center, radius, color, 3, 8, 0 );
     }
     else
-    rectangle(frameCpy_, cvPoint(cvRound(face_.x), cvRound(face_.y)),
-              cvPoint(cvRound(face_.x + face_.width-1),
-                      cvRound(face_.y + face_.height-1)),
+    rectangle(frameCpy_, cvPoint(cvRound(face.x), cvRound(face.y)),
+              cvPoint(cvRound(face.x + face.width-1),
+                      cvRound(face.y + face.height-1)),
               color, 3, 8, 0);
 }
 
@@ -112,24 +144,8 @@ void Facetrack::detectHead(void)
     if( faces.size() > 0 )
     {
         stabilize(faces[0]);
-        getCoordinates();
     }
  }
-
-void Facetrack::getCoordinates(void)
-{
-    int x1,y1,x2,y2;
-    x1=y1=x2=y2=0;
-    x1 = face_.x;
-    y1 = face_.y;
-    x2 = x1 + face_.width;
-    y2 = y1 + face_.height;
-
-    x1_ = x1;
-    y1_ = y1;
-    x2_ = x2;
-    y2_ = y2;
-}
 
 /* Convert the rectangle found in 2D to 3D pos in unit box
  */
@@ -147,7 +163,8 @@ void Facetrack::WTLeeTrackPosition (void)
     float radPerPix = (fov_/fovWidth);
 
     //get the size of the head in degrees (relative to the field of view)
-    float dx = (float)(x1_ - x2_), dy = (float)(y1_ - y2_);
+    float dx = (float)(currentFace_.x1 - currentFace_.x2);
+    float dy = (float)(currentFace_.y1 - currentFace_.y2);
     float pointDist = (float)sqrt(dx * dx + dy * dy);
     float angle = radPerPix * pointDist / 2.0;
 
@@ -157,7 +174,8 @@ void Facetrack::WTLeeTrackPosition (void)
     head_.z = (float)(DEPTH_ADJUST*((AVG_HEAD_MM / 2) / std::tan(angle)) / (float)SCREENHEIGHT);
 
     //average distance = center of the head
-    float aX = (x1_ + x2_) / 2.0f, aY = (y1_ + y2_) / 2.0f;
+    float aX = (currentFace_.x1 + currentFace_.x2) / 2.0f;
+    float aY = (currentFace_.y1 + currentFace_.y2) / 2.0f;
 
     // Set the head position horizontally
     head_.x = scale_*((float)sin(radPerPix * (aX - camW2)) * head_.z);
@@ -170,7 +188,6 @@ void Facetrack::WTLeeTrackPosition (void)
     if (CAMERA_ABOVE)
         head_.y = head_.y + 0.5f + (float)sin(relAng)*head_.z;
 
-    cout<<"head: "<<head_.x<<" "<<head_.y<<" "<<head_.z<<endl;
     emit signalNewHeadPos(head_);
 }
 
@@ -211,10 +228,32 @@ QImage Facetrack::putImage(const Mat& mat)
  */
 void Facetrack::stabilize(Rect pNewFace)
 {
-    prevFace_ = face_;
-    face_ = pNewFace;
+    coord_t newFace(pNewFace);
+    prevFaces_.push_back(newFace);
+    if (prevFaces_.size() > NB_SAMPLE_FILTER)
+        prevFaces_.pop_front();
+
+    coord_t result;
+    int cumul = 0;
+
+    //compute the weighted average
+    for(int i=0; i < prevFaces_.size(); ++i)
+    {
+        cumul += weights_[i];
+        result.x1 += prevFaces_.at(i).x1*weights_[i];
+        result.y1 += prevFaces_.at(i).y1*weights_[i];
+        result.x2 += prevFaces_.at(i).x2*weights_[i];
+        result.y2 += prevFaces_.at(i).y2*weights_[i];
+    }
+
+    //don't forget to normalize
+    result.x1 /=  cumul;
+    result.y1 /= cumul;
+    result.x2 /= cumul;
+    result.y2 /= cumul;
+
+    currentFace_ = result;
     newFaceFound_ = true;
-    getCoordinates();
     WTLeeTrackPosition();
 }
 
