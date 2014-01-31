@@ -171,7 +171,7 @@ void Facetrack::WTLeeTrackPosition (void)
     /* Set the head distance in units of screen size
      * creates more or less zoom
      */
-    head_.z = (float)(DEPTH_ADJUST*((AVG_HEAD_MM / 2) / std::tan(angle)) / (float)SCREENHEIGHT);
+    head_.z = (float)(DEPTH_ADJUST + scale_*((AVG_HEAD_MM / 2) / std::tan(angle)) / (float)SCREENHEIGHT);
 
     //average distance = center of the head
     float aX = (currentFace_.x1 + currentFace_.x2) / 2.0f;
