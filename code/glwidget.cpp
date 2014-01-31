@@ -60,7 +60,7 @@ void glWidget::paintGL()
     glTranslatef(3,0,0);
     drawCube(CRATE,0,0,0,2.0f);
     */
-    drawCube2DGrid(CRATE,1.0f,2.0f,5,5);
+    drawCube3DGrid(CRATE,0.5f,1.0f,5,5,5);
 
 }
 
@@ -163,5 +163,33 @@ void glWidget::drawCube2DGrid(texId_t pTexture,float pSpacing, float pCubeSize, 
         }
         //go back at the start of the line and draw downards y
         glTranslatef(-(pSpacing + pCubeSize)*pL,-(pSpacing+pCubeSize),0);
+    }
+}
+
+//Draw a 2D grid composed of L*H cubes of size CubeZise spaced by pSpacing
+void glWidget::drawCube3DGrid(texId_t pTexture,
+                              float pSpacing,
+                              float pCubeSize,
+                              int pL,
+                              int pH,
+                              int pW)
+{
+    glTranslatef(-(pSpacing+pCubeSize)*(pL-1)/2,
+                 (pSpacing+pCubeSize)*(pH-1)/2,
+                 -(pSpacing+pCubeSize)*(pW-1)/2);
+    for(int z = 0; z < pW; z++)
+    {
+        for(int y = 0; y < pH; ++y)
+        {
+            for(int x = 0; x < pL; ++x)
+            {
+                drawCube(pTexture,0,0,0,pCubeSize);
+                //draw next cube to the right (greater X)
+                glTranslatef(pSpacing+pCubeSize,0,0);
+            }
+            //go back at the start of the line and draw downards y
+            glTranslatef(-(pSpacing + pCubeSize)*pL,-(pSpacing+pCubeSize),0);
+        }
+        glTranslatef(0,(pSpacing+pCubeSize)*pH,-(pSpacing+pCubeSize));
     }
 }

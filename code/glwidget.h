@@ -32,6 +32,12 @@ public:
                         float pCubeSize,
                         int pL,
                         int pH);
+    void drawCube3DGrid(texId_t pTexture,
+                                  float pSpacing,
+                                  float pCubeSize,
+                                  int pL,
+                                  int pH,
+                                  int pW);
 signals:
 
 public slots:
