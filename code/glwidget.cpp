@@ -56,9 +56,11 @@ void glWidget::paintGL()
 
     // Objects
     // =======
-    drawCube(CRATE,0,0,0,2.0f);
+   /* drawCube(CRATE,0,0,0,2.0f);
     glTranslatef(3,0,0);
     drawCube(CRATE,0,0,0,2.0f);
+    */
+    drawCube2DGrid(CRATE,1.0f,2.0f,5,5);
 
 }
 
@@ -145,4 +147,21 @@ void glWidget::drawCube(texId_t PtextureId, float pCenterX, float pCenterY,float
     glTexCoord2f(1.0f, 1.0f); glVertex3f(pCenterX-half, pCenterY+half, pCenterZ+half);
     glTexCoord2f(0.0f, 1.0f); glVertex3f(pCenterX-half, pCenterY+half, pCenterZ-half);
     glEnd();
+}
+
+//Draw a 2D grid composed of L*H cubes of size CubeZise spaced by pSpacing
+void glWidget::drawCube2DGrid(texId_t pTexture,float pSpacing, float pCubeSize, int pL,int pH)
+{
+    glTranslatef(-(pSpacing+pCubeSize)*(pL-1)/2,(pSpacing+pCubeSize)*(pH-1)/2,0);
+    for(int i = 0; i < pH; ++i)
+    {
+        for(int j = 0; j < pL; ++j)
+        {
+            drawCube(pTexture,0,0,0,pCubeSize);
+            //draw next cube to the right (greater X)
+            glTranslatef(pSpacing+pCubeSize,0,0);
+        }
+        //go back at the start of the line and draw downards y
+        glTranslatef(-(pSpacing + pCubeSize)*pL,-(pSpacing+pCubeSize),0);
+    }
 }

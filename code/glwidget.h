@@ -27,6 +27,11 @@ public:
                   float pCenterY,
                   float pCenterZ,
                   float pSize);
+    void drawCube2DGrid(texId_t pTexture,
+                        float pSpacing,
+                        float pCubeSize,
+                        int pL,
+                        int pH);
 signals:
 
 public slots:
