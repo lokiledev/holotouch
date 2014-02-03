@@ -13,6 +13,7 @@ TEMPLATE = app
 
 INCLUDEPATH += /usr/local/include/opencv
 
+#opencv libraries
 LIBS += -L/usr/local/lib
 LIBS += -lopencv_core
 LIBS += -lopencv_imgproc
@@ -26,17 +27,26 @@ LIBS += -lopencv_contrib
 LIBS += -lopencv_legacy
 LIBS += -lopencv_flann
 LIBS += -lopencv_nonfree
+
+#opengl lib
 LIBS += -lGLU
+
+#leapmotion lib
+LIBS += -Lleapmotion
+LIBS += -llibLeap
 
 SOURCES += main.cpp \
     head_tracking/facetrack.cpp \
     mainwindow.cpp \
     glview.cpp \
-    glwidget.cpp
+    glwidget.cpp \
+    leapmotion/QLeapEvent.cpp
 
 HEADERS += \
     mainwindow.h \
     head_tracking/facetrack.h \
     glview.h \
     glwidget.h \
-    tracking_defines.h
+    tracking_defines.h \
+    leapmotion/Leap.h \
+    leapmotion/QLeapEvent.h
