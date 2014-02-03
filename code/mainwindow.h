@@ -2,13 +2,18 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include "leapmotion/Leap.h"
+
 #include "glwidget.h"
+#include "head_tracking/facetrack.h"
+#include "leapmotion/LeapListener.h"
 
 class QLabel;
 class QTimer;
 class QMenu;
 
-#include "head_tracking/facetrack.h"
+using namespace Leap;
+
 
 class mainwindow : public QMainWindow
 {
@@ -21,9 +26,12 @@ private:
     QTimer* timer_;
     QMenu* menu_;
     glWidget* glView_;
+    Controller controller_;
+    LeapListener listener_;
 
 public:
     mainwindow(QWidget *parent = 0);
+    ~mainwindow();
     void init(void);
     void mainLoop(void);
     void keyPressEvent( QKeyEvent *keyEvent);

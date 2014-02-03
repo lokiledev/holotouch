@@ -12,6 +12,7 @@ CONFIG   -= app_bundle
 TEMPLATE = app
 
 INCLUDEPATH += /usr/local/include/opencv
+#INCLUDEPATH += ../code/leapmotion
 
 #opencv libraries
 LIBS += -L/usr/local/lib
@@ -32,15 +33,15 @@ LIBS += -lopencv_nonfree
 LIBS += -lGLU
 
 #leapmotion lib
-LIBS += -Lleapmotion
-LIBS += -llibLeap
+LIBS += -L"$$_PRO_FILE_PWD_/leapmotion"
+LIBS += -lLeap
 
 SOURCES += main.cpp \
     head_tracking/facetrack.cpp \
     mainwindow.cpp \
     glview.cpp \
     glwidget.cpp \
-    leapmotion/QLeapEvent.cpp
+    leapmotion/LeapListener.cpp
 
 HEADERS += \
     mainwindow.h \
@@ -49,4 +50,4 @@ HEADERS += \
     glwidget.h \
     tracking_defines.h \
     leapmotion/Leap.h \
-    leapmotion/QLeapEvent.h
+    leapmotion/LeapListener.h

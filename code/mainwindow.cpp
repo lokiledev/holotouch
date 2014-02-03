@@ -17,6 +17,12 @@ mainwindow::mainwindow(QWidget *parent) :
 {
 }
 
+ mainwindow::~mainwindow()
+ {
+     //stop tracking
+    controller_.removeListener(listener_);
+ }
+
 void mainwindow::init(void)
 {
 
@@ -36,7 +42,6 @@ void mainwindow::init(void)
     glView_ = new glWidget(this);
     hLayout->addWidget(glView_);
 
-
     menu_ = menuBar()->addMenu("&Display");
     QAction* actionStart = new QAction("Start/Stop", this);
     QAction* actionHide = new QAction("Hide Webcam", this);
@@ -55,6 +60,8 @@ void mainwindow::init(void)
     setCentralWidget(centerWidget);
 
     connect(&tracker_, SIGNAL(signalNewHeadPos(head_t)), glView_, SLOT(slotNewHead(head_t)));
+
+    controller_.addListener(listener_);
 }
 
 void mainwindow::slotStart()
