@@ -1,6 +1,13 @@
 #include "glwidget.h"
+
+
 #include <GL/glu.h>
 #include <iostream>
+
+#define SCALE_FACTOR_XY 20.0f
+#define Z_OFFSET 200.0f
+#define Z_SCALE_FACTOR 10.0f
+#define Y_OFFSET 100.0f
 
 glWidget::glWidget(QWidget *parent) :
     Glview(60,parent)
@@ -8,6 +15,9 @@ glWidget::glWidget(QWidget *parent) :
     head_.x = 0.0;
     head_.y = 0.0;
     head_.z = 5.0;
+    palmPos_.x = 0.0f;
+    palmPos_.y = 0.0f;
+    palmPos_.z = 0.0f;
 }
 
 void glWidget::initializeGL()
@@ -60,9 +70,49 @@ void glWidget::paintGL()
     glTranslatef(3,0,0);
     drawCube(CRATE,0,0,0,2.0f);
     */
+    drawPalmPos();
     drawCube3DGrid(CRATE,0.5f,1.0f,5,5,5);
 
 }
+
+
+void glWidget::onInit(const Controller& controller) {
+    Q_UNUSED(controller);
+    std::cout << "Initialized" << std::endl;
+}
+
+void glWidget::onConnect(const Controller& controller) {
+    std::cout << "Connected" << std::endl;
+    controller.enableGesture(Gesture::TYPE_CIRCLE);
+    controller.enableGesture(Gesture::TYPE_SCREEN_TAP);
+    controller.enableGesture(Gesture::TYPE_SWIPE);
+}
+
+void glWidget::onDisconnect(const Controller& controller) {
+    //Note: not dispatched when running in a debugger.
+    Q_UNUSED(controller);
+    std::cout << "Disconnected" << std::endl;
+}
+
+void glWidget::onExit(const Controller& controller) {
+    Q_UNUSED(controller);
+    std::cout << "Exited" << std::endl;
+}
+
+void glWidget::onFrame(const Controller& controller) {
+    Q_UNUSED(controller);
+    // Get the most recent frame and report some basic information
+    const Frame frame = controller.frame();
+    /*std::cout << ", hands: " << frame.hands().count()
+               <<", palm pos: "<< frame.hands()[0].palmPosition()<<std::endl;
+    */
+    if (frame.hands().count() == 1)
+    {
+        Hand hand = frame.hands()[0];
+        palmPos_ = hand.palmPosition();
+    }
+}
+
 
 void glWidget::loadTexture(QString textureName)
 {
@@ -192,4 +242,18 @@ void glWidget::drawCube3DGrid(texId_t pTexture,
         }
         glTranslatef(0,(pSpacing+pCubeSize)*pH,-(pSpacing+pCubeSize));
     }
+}
+
+void glWidget::drawPalmPos()
+{
+    //normalize leap coordinates to our box size
+   drawCube(CRATE,
+            palmPos_.x/SCALE_FACTOR_XY ,
+            (palmPos_.y - Y_OFFSET)/SCALE_FACTOR_XY,
+            (palmPos_.z - Z_OFFSET)/Z_SCALE_FACTOR, 0.5f);
+}
+
+void glWidget::slotPalmPos(Vector pPos)
+{
+    palmPos_ = pPos;
 }

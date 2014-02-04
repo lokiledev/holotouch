@@ -20,7 +20,7 @@ mainwindow::mainwindow(QWidget *parent) :
  mainwindow::~mainwindow()
  {
      //stop tracking
-    controller_.removeListener(listener_);
+    controller_.removeListener(*glView_);
  }
 
 void mainwindow::init(void)
@@ -61,7 +61,7 @@ void mainwindow::init(void)
 
     connect(&tracker_, SIGNAL(signalNewHeadPos(head_t)), glView_, SLOT(slotNewHead(head_t)));
 
-    controller_.addListener(listener_);
+    controller_.addListener(*glView_);
 }
 
 void mainwindow::slotStart()

@@ -27,7 +27,7 @@ private:
     QMenu* menu_;
     glWidget* glView_;
     Controller controller_;
-    LeapListener listener_;
+   // LeapListener listener_;
 
 public:
     mainwindow(QWidget *parent = 0);

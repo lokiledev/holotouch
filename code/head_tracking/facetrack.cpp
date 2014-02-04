@@ -60,11 +60,16 @@ Facetrack::~Facetrack()
 
 void Facetrack::init(void)
 {
-    capture_ = cvCaptureFromCAM(CV_CAP_ANY);
+    capture_ = cvCaptureFromCAM(0);
 
+    // try to open 2 different cams, else fail.
+    // 0 = embedded cam like in laptops,
+    // 1 = usb cam
     if ( !capture_ )
     {
-        throw string("Couldn't open webcam, device busy.\nTry closing other webcam apps or reboot");
+        capture_ = cvCaptureFromCAM(1);
+        if ( !capture_ )
+            throw string("Couldn't open webcam, device busy.\nTry closing other webcam apps or reboot");
     }
 
     string path = DATADIR;
