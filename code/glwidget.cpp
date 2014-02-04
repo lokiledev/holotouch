@@ -319,7 +319,8 @@ void glWidget::computeGrid(float pSpacing)
                     cubeList_[i].x_ = x*spacing_ - offset;
                     cubeList_[i].y_ = y*spacing_ - offset;
                     cubeList_[i].z_ = -z*spacing_;
-                    cubeList_[i].sizeOffset_ = 0;
+                    if ( !cubeList_[i].selected_ )
+                        cubeList_[i].sizeOffset_ = 0;
                 }
             }
         }
@@ -343,7 +344,7 @@ int glWidget::closestCube(float pTreshold)
     {
         Leap::Vector testV(it->x_,it->y_, it->z_);
         float delta = palmPos_.distanceTo(testV);
-        if ((delta<=pTreshold) && (delta <= minDist))
+        if ((delta <= pTreshold) && (delta <= minDist))
         {
             minDist = delta;
             id = i;
@@ -356,9 +357,22 @@ int glWidget::closestCube(float pTreshold)
 void glWidget::handleSelection()
 {
     int cube = closestCube(1.0f);
-    if (cube != -1)
+    if (cube != -1 )
     {
-        cubeList_[cube].sizeOffset_ = 1.0f;
+        if ( cubeList_[cube].selected_ )
+        {
+            if ( cubeList_[cube].sizeOffset_ <= 1.0f )
+            {
+                cubeList_[cube].sizeOffset_ += 0.05f;
+            }
+        }
+        else
+            cubeList_[cube].selected_ = true;
+    }
+    for(int i = 0; i < cubeList_.size(); i++)
+    {
+        if (i != cube)
+            cubeList_[i].selected_ = false;
     }
 }
 
