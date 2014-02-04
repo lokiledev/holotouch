@@ -31,7 +31,7 @@ glWidget::glWidget(QWidget *parent) :
     palmPos_.y = 0.0f;
     palmPos_.z = 0.0f;
     setCursor(Qt::BlankCursor);
-    generateCubes(CRATE,9);
+    generateCubes(CRATE,27);
 }
 
 void glWidget::initializeGL()
@@ -305,7 +305,7 @@ void glWidget::computeGrid(float pSpacing)
         {
             for (int x = 0; x <= nCube; x++)
             {
-                int i = z*nCube + y*nCube + x;
+                int i = z*nCube*nCube + y*nCube + x;
                 //avoid overflow
                 if (i < cubeList_.size() )
                 {
