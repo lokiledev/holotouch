@@ -22,7 +22,9 @@ glWidget::cube_t::cube_t(float pSize, texId_t pText)
 }
 
 glWidget::glWidget(QWidget *parent) :
-    Glview(60,parent)
+    Glview(60,parent),
+    gridSize_(0),
+    spacing_(1.0f)
 {
     head_.x = 0.0;
     head_.y = 0.0;
@@ -297,8 +299,11 @@ void glWidget::generateCubes(texId_t pTexture, int pNbCubes)
 //pSpacing is between each cube center
 void glWidget::computeGrid(float pSpacing)
 {
+    spacing_ = pSpacing;
     int nCube = std::roundf(std::cbrt(cubeList_.size()));
-    std::cout<<"size: "<<cubeList_.size()<<" cubed: "<<nCube<<std::endl;
+
+    //to center front face on (0,0,0)
+    float offset = (nCube-1)*spacing_/2;
     for (int z = 0; z <= nCube; z++)
     {
         for (int y = 0; y <= nCube; y++)
@@ -309,11 +314,9 @@ void glWidget::computeGrid(float pSpacing)
                 //avoid overflow
                 if (i < cubeList_.size() )
                 {
-
-                    std::cout<<"x: "<<x<<" y: "<<y<<" z: "<<z<<std::endl;
-                    cubeList_[i].x_ = x*pSpacing;
-                    cubeList_[i].y_ = y*pSpacing;
-                    cubeList_[i].z_ = z*pSpacing;
+                    cubeList_[i].x_ = x*spacing_ - offset;
+                    cubeList_[i].y_ = y*spacing_ - offset;
+                    cubeList_[i].z_ = -z*spacing_;
                 }
             }
         }
@@ -325,6 +328,7 @@ void glWidget::drawCurrentGrid()
     QList<cube_t>::iterator it;
     for (it = cubeList_.begin(); it != cubeList_.end(); it++)
         drawCube(*it);
+    glTranslatef((gridSize_*spacing_)/2, (gridSize_*spacing_)/2, 0.0f);
 }
 
 void glWidget::slotPalmPos(Vector pPos)

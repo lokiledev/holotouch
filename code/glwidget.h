@@ -38,6 +38,8 @@ private:
     head_t head_;
     Leap::Vector palmPos_;
     QList<cube_t> cubeList_;
+    int gridSize_;
+    float spacing_;
 
 public:
     glWidget(QWidget *parent = 0);
