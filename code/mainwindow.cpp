@@ -27,6 +27,7 @@ void mainwindow::init(void)
 {
 
     QHBoxLayout* hLayout = new QHBoxLayout();
+    hLayout->setContentsMargins(0,0,0,0);
 
     webcamView_ = new QLabel("Face View",this);
     hLayout->addWidget(webcamView_);
