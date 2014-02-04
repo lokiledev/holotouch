@@ -2,6 +2,7 @@
 #define GLWIDGET_H
 
 #include <QImage>
+#include <QList>
 
 #include "leapmotion/Leap.h"
 
@@ -15,12 +16,28 @@ class glWidget : public Glview, public Leap::Listener
 {
     Q_OBJECT
 public:
+    //typedef for textures management
     typedef enum {CRATE, METAL,NONE = -1} texId_t;
+
+    //simple way of describing a cube/item
+    struct cube_t {
+        float x_;
+        float y_;
+        float z_;
+        float size_;
+        texId_t texture_;
+        bool selected_;
+        bool drawn_;
+        //constructor
+        cube_t(float pSize = 1.0f, texId_t pText = CRATE);
+    };
+
 private:
     GLuint texture_[NB_TEXTURE];
     //head positions in cm relative to screen center.
     head_t head_;
     Leap::Vector palmPos_;
+    QList<cube_t> cubeList_;
 
 public:
     glWidget(QWidget *parent = 0);
@@ -55,6 +72,12 @@ public:
                                   int pH,
                                   int pW);
     void drawPalmPos();
+    void drawCube(cube_t pCube);
+    void drawCurrentGrid();
+
+private:
+    void generateCubes(texId_t pTexture, int pNbCubes);
+    void computeGrid(float pSpacing);
 
 signals:
 

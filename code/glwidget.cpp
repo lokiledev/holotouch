@@ -1,6 +1,6 @@
 #include "glwidget.h"
 
-
+#include <math.h>
 #include <GL/glu.h>
 #include <iostream>
 
@@ -8,6 +8,18 @@
 #define Z_OFFSET 200.0f
 #define Z_SCALE_FACTOR 10.0f
 #define Y_OFFSET 200.0f
+
+
+glWidget::cube_t::cube_t(float pSize, texId_t pText)
+    :x_(0),
+     y_(0),
+     z_(0),
+     size_(pSize),
+     texture_(pText),
+     selected_(false),
+     drawn_(false)
+{
+}
 
 glWidget::glWidget(QWidget *parent) :
     Glview(60,parent)
@@ -19,6 +31,7 @@ glWidget::glWidget(QWidget *parent) :
     palmPos_.y = 0.0f;
     palmPos_.z = 0.0f;
     setCursor(Qt::BlankCursor);
+    generateCubes(CRATE,9);
 }
 
 void glWidget::initializeGL()
@@ -73,8 +86,9 @@ void glWidget::paintGL()
     drawCube(CRATE,0,0,0,2.0f);
     */
     drawPalmPos();
-    drawCube3DGrid(CRATE, 1.0f, 1.0f, 5, 5, 5);
-
+    computeGrid(2.0f);
+    drawCurrentGrid();
+    //drawCube3DGrid(CRATE, 1.0f, 1.0f, 5, 5, 5);
 }
 
 
@@ -251,6 +265,15 @@ void glWidget::drawCube3DGrid(texId_t pTexture,
     }
 }
 
+void glWidget::drawCube(cube_t pCube)
+{
+    drawCube(pCube.texture_,
+             pCube.x_,
+             pCube.y_,
+             pCube.z_,
+             pCube.size_);
+}
+
 void glWidget::drawPalmPos()
 {
     //normalize leap coordinates to our box size
@@ -258,6 +281,50 @@ void glWidget::drawPalmPos()
             palmPos_.x ,
             palmPos_.y,
             palmPos_.z, 0.5f);
+}
+
+void glWidget::generateCubes(texId_t pTexture, int pNbCubes)
+{
+    cubeList_.clear();
+    for (int i=0; i<pNbCubes; ++i)
+    {
+        cube_t cube(1.0f, pTexture);
+        cubeList_.append(cube);
+    }
+}
+
+//generate a cubic grid from cubeList_
+//pSpacing is between each cube center
+void glWidget::computeGrid(float pSpacing)
+{
+    int nCube = std::roundf(std::cbrt(cubeList_.size()));
+    std::cout<<"size: "<<cubeList_.size()<<" cubed: "<<nCube<<std::endl;
+    for (int z = 0; z <= nCube; z++)
+    {
+        for (int y = 0; y <= nCube; y++)
+        {
+            for (int x = 0; x <= nCube; x++)
+            {
+                int i = z*nCube + y*nCube + x;
+                //avoid overflow
+                if (i < cubeList_.size() )
+                {
+
+                    std::cout<<"x: "<<x<<" y: "<<y<<" z: "<<z<<std::endl;
+                    cubeList_[i].x_ = x*pSpacing;
+                    cubeList_[i].y_ = y*pSpacing;
+                    cubeList_[i].z_ = z*pSpacing;
+                }
+            }
+        }
+    }
+}
+
+void glWidget::drawCurrentGrid()
+{
+    QList<cube_t>::iterator it;
+    for (it = cubeList_.begin(); it != cubeList_.end(); it++)
+        drawCube(*it);
 }
 
 void glWidget::slotPalmPos(Vector pPos)

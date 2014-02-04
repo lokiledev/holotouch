@@ -11,6 +11,8 @@ CONFIG   -= app_bundle
 
 TEMPLATE = app
 
+QMAKE_CXXFLAGS += -std=c++11
+
 INCLUDEPATH += /usr/local/include/opencv
 #INCLUDEPATH += ../code/leapmotion
 
