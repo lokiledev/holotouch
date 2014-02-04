@@ -15,6 +15,7 @@ glWidget::cube_t::cube_t(float pSize, texId_t pText)
      y_(0),
      z_(0),
      size_(pSize),
+     sizeOffset_(0),
      texture_(pText),
      selected_(false),
      drawn_(false)
@@ -274,7 +275,7 @@ void glWidget::drawCube(cube_t pCube)
              pCube.x_,
              pCube.y_,
              pCube.z_,
-             pCube.size_);
+             pCube.size_ + pCube.sizeOffset_);
 }
 
 void glWidget::drawPalmPos()
@@ -318,7 +319,7 @@ void glWidget::computeGrid(float pSpacing)
                     cubeList_[i].x_ = x*spacing_ - offset;
                     cubeList_[i].y_ = y*spacing_ - offset;
                     cubeList_[i].z_ = -z*spacing_;
-                    cubeList_[i].size_ = 1.0f;
+                    cubeList_[i].sizeOffset_ = 0;
                 }
             }
         }
@@ -357,7 +358,7 @@ void glWidget::handleSelection()
     int cube = closestCube(1.0f);
     if (cube != -1)
     {
-        cubeList_[cube].size_ = 2.0f;
+        cubeList_[cube].sizeOffset_ = 1.0f;
     }
 }
 

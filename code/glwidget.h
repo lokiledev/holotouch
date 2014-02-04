@@ -25,6 +25,7 @@ public:
         float y_;
         float z_;
         float size_;
+        float sizeOffset_;
         texId_t texture_;
         bool selected_;
         bool drawn_;
