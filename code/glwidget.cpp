@@ -32,7 +32,7 @@ glWidget::glWidget(QWidget *parent) :
     head_.z = 5.0;
     palmPos_.x = 0.0f;
     palmPos_.y = 0.0f;
-    palmPos_.z = 0.0f;
+    palmPos_.z = 5.0f;
     setCursor(Qt::BlankCursor);
     generateCubes(CRATE,125);
 }
@@ -135,6 +135,10 @@ void glWidget::onFrame(const Controller& controller) {
         palmPos_.x = pos.x/SCALE_FACTOR_XY;
         palmPos_.y = (pos.y - Y_OFFSET)/SCALE_FACTOR_XY;
         palmPos_.z = (pos.z - Z_OFFSET)/Z_SCALE_FACTOR;
+
+        //compensate head position to align view and movement
+        palmPos_.x -= head_.x;
+        palmPos_.y -= head_.y;
     }
 }
 
