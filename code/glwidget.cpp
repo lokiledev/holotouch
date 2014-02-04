@@ -7,7 +7,7 @@
 #define SCALE_FACTOR_XY 20.0f
 #define Z_OFFSET 200.0f
 #define Z_SCALE_FACTOR 10.0f
-#define Y_OFFSET 100.0f
+#define Y_OFFSET 200.0f
 
 glWidget::glWidget(QWidget *parent) :
     Glview(60,parent)
