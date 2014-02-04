@@ -6,7 +6,6 @@
 
 #include "glwidget.h"
 #include "head_tracking/facetrack.h"
-#include "leapmotion/LeapListener.h"
 
 class QLabel;
 class QTimer;

@@ -8,15 +8,16 @@
 #include "glview.h"
 #include "tracking_defines.h"
 
+#define NB_TEXTURE 2
 using namespace Leap;
 
 class glWidget : public Glview, public Leap::Listener
 {
     Q_OBJECT
 public:
-    typedef enum {CRATE,NONE = -1} texId_t;
+    typedef enum {CRATE, METAL,NONE = -1} texId_t;
 private:
-    GLuint texture_[1];
+    GLuint texture_[NB_TEXTURE];
     //head positions in cm relative to screen center.
     head_t head_;
     Leap::Vector palmPos_;
@@ -36,7 +37,7 @@ public:
     void onExit(const Controller&);
     void onFrame(const Controller&);
 
-    void loadTexture(QString textureName);
+    void loadTexture(QString textureName, texId_t pId);
     void drawCube(texId_t PtextureId,
                   float pCenterX,
                   float pCenterY,

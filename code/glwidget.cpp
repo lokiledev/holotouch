@@ -22,7 +22,8 @@ glWidget::glWidget(QWidget *parent) :
 
 void glWidget::initializeGL()
 {
-    loadTexture("../code/ressources/box.png");
+    loadTexture("../code/ressources/box.png", CRATE);
+    loadTexture("../code/ressources/metal.jpg", METAL);
 
     glEnable(GL_TEXTURE_2D);
 
@@ -114,14 +115,14 @@ void glWidget::onFrame(const Controller& controller) {
 }
 
 
-void glWidget::loadTexture(QString textureName)
+void glWidget::loadTexture(QString textureName, texId_t pId)
 {
     QImage qim_Texture;
     QImage qim_TempTexture;
     qim_TempTexture.load(textureName);
     qim_Texture = QGLWidget::convertToGLFormat( qim_TempTexture );
-    glGenTextures( 1, &texture_[0] );
-    glBindTexture( GL_TEXTURE_2D, texture_[0] );
+    glGenTextures( 1, &texture_[pId] );
+    glBindTexture( GL_TEXTURE_2D, texture_[pId] );
     glTexImage2D( GL_TEXTURE_2D, 0, 3, qim_Texture.width(), qim_Texture.height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, qim_Texture.bits() );
     glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
     glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
@@ -247,7 +248,7 @@ void glWidget::drawCube3DGrid(texId_t pTexture,
 void glWidget::drawPalmPos()
 {
     //normalize leap coordinates to our box size
-   drawCube(CRATE,
+   drawCube(METAL,
             palmPos_.x/SCALE_FACTOR_XY ,
             (palmPos_.y - Y_OFFSET)/SCALE_FACTOR_XY,
             (palmPos_.z - Z_OFFSET)/Z_SCALE_FACTOR, 0.5f);
