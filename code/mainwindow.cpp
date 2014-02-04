@@ -30,6 +30,7 @@ void mainwindow::init(void)
 
     webcamView_ = new QLabel("Face View",this);
     hLayout->addWidget(webcamView_);
+    webcamView_->hide();
 
     tracker_.init();
     setWindowTitle("Holotouch");
@@ -62,6 +63,7 @@ void mainwindow::init(void)
     connect(&tracker_, SIGNAL(signalNewHeadPos(head_t)), glView_, SLOT(slotNewHead(head_t)));
 
     controller_.addListener(*glView_);
+    //timer_->start(DELAY_FPS);
 }
 
 void mainwindow::slotStart()
@@ -131,7 +133,10 @@ void mainwindow::keyPressEvent(QKeyEvent *keyEvent)
 
 void mainwindow::slotUpdateFrame(QPixmap pNewFrame)
 {
-    webcamView_->setPixmap(pNewFrame.scaled(webcamView_->width(), webcamView_->height(),Qt::KeepAspectRatio));
+    //display webcam image in label,
+    //only if it's visible to save processing time
+    if (webcamView_->isVisible() )
+        webcamView_->setPixmap(pNewFrame.scaled(webcamView_->width(), webcamView_->height(),Qt::KeepAspectRatio));
 }
 
 void mainwindow::slotAbout()

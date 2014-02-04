@@ -18,6 +18,7 @@ glWidget::glWidget(QWidget *parent) :
     palmPos_.x = 0.0f;
     palmPos_.y = 0.0f;
     palmPos_.z = 0.0f;
+    setCursor(Qt::BlankCursor);
 }
 
 void glWidget::initializeGL()
@@ -72,7 +73,7 @@ void glWidget::paintGL()
     drawCube(CRATE,0,0,0,2.0f);
     */
     drawPalmPos();
-    drawCube3DGrid(CRATE,0.5f,1.0f,5,5,5);
+    drawCube3DGrid(CRATE, 1.0f, 1.0f, 5, 5, 5);
 
 }
 
@@ -110,7 +111,12 @@ void glWidget::onFrame(const Controller& controller) {
     if (frame.hands().count() == 1)
     {
         Hand hand = frame.hands()[0];
-        palmPos_ = hand.palmPosition();
+        Vector pos = hand.palmPosition();
+
+        //adjust to our view coordinates
+        palmPos_.x = pos.x/SCALE_FACTOR_XY;
+        palmPos_.y = (pos.y - Y_OFFSET)/SCALE_FACTOR_XY;
+        palmPos_.z = (pos.z - Z_OFFSET)/Z_SCALE_FACTOR;
     }
 }
 
@@ -249,9 +255,9 @@ void glWidget::drawPalmPos()
 {
     //normalize leap coordinates to our box size
    drawCube(METAL,
-            palmPos_.x/SCALE_FACTOR_XY ,
-            (palmPos_.y - Y_OFFSET)/SCALE_FACTOR_XY,
-            (palmPos_.z - Z_OFFSET)/Z_SCALE_FACTOR, 0.5f);
+            palmPos_.x ,
+            palmPos_.y,
+            palmPos_.z, 0.5f);
 }
 
 void glWidget::slotPalmPos(Vector pPos)
