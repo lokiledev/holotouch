@@ -33,7 +33,7 @@ glWidget::glWidget(QWidget *parent) :
     palmPos_.y = 0.0f;
     palmPos_.z = 0.0f;
     setCursor(Qt::BlankCursor);
-    generateCubes(CRATE,27);
+    generateCubes(CRATE,125);
 }
 
 void glWidget::initializeGL()
@@ -89,6 +89,7 @@ void glWidget::paintGL()
     */
     drawPalmPos();
     computeGrid(2.0f);
+    handleSelection();
     drawCurrentGrid();
     //drawCube3DGrid(CRATE, 1.0f, 1.0f, 5, 5, 5);
 }
@@ -317,6 +318,7 @@ void glWidget::computeGrid(float pSpacing)
                     cubeList_[i].x_ = x*spacing_ - offset;
                     cubeList_[i].y_ = y*spacing_ - offset;
                     cubeList_[i].z_ = -z*spacing_;
+                    cubeList_[i].size_ = 1.0f;
                 }
             }
         }
@@ -329,6 +331,34 @@ void glWidget::drawCurrentGrid()
     for (it = cubeList_.begin(); it != cubeList_.end(); it++)
         drawCube(*it);
     glTranslatef((gridSize_*spacing_)/2, (gridSize_*spacing_)/2, 0.0f);
+}
+
+int glWidget::closestCube(float pTreshold)
+{
+    float minDist = 1000.0f;
+    QList<cube_t>::iterator it;
+    int id = -1, i = 0;
+    for (it = cubeList_.begin(); it != cubeList_.end(); it++)
+    {
+        Leap::Vector testV(it->x_,it->y_, it->z_);
+        float delta = palmPos_.distanceTo(testV);
+        if ((delta<=pTreshold) && (delta <= minDist))
+        {
+            minDist = delta;
+            id = i;
+        }
+        i++;
+    }
+    return id;
+}
+
+void glWidget::handleSelection()
+{
+    int cube = closestCube(1.0f);
+    if (cube != -1)
+    {
+        cubeList_[cube].size_ = 2.0f;
+    }
 }
 
 void glWidget::slotPalmPos(Vector pPos)

@@ -80,6 +80,8 @@ public:
 private:
     void generateCubes(texId_t pTexture, int pNbCubes);
     void computeGrid(float pSpacing);
+    int closestCube(float pTreshold);
+    void handleSelection();
 
 signals:
 
