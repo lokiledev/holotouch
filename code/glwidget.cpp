@@ -300,9 +300,11 @@ void glWidget::drawCube(const cube_t& pCube)
              pCube.size_ + pCube.sizeOffset_);
     if (pCube.fileName_.size() > 0)
     {
-        renderText(pCube.x_,
+        //text is masked by cubes,
+        //draw under to see it clearly
+        renderText(pCube.x_ - pCube.size_/2.0f,
                    pCube.y_ - pCube.size_,
-                   pCube.z_ + pCube.size_,
+                   pCube.z_ + pCube.size_/2.0f,
                    pCube.fileName_);
     }
 }
