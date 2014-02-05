@@ -43,7 +43,6 @@ private:
     //head positions in cm relative to screen center.
     head_t head_;
     Leap::Vector palmPos_;
-    bool select_;
     QList<cube_t> cubeList_;
     int gridSize_;
     float spacing_;

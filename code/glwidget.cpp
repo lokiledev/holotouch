@@ -6,16 +6,16 @@
 
 #define BOX_SIZE 5.0f //the grid is always inside the box
 
-#define SCALE_FACTOR_XY 20.0f
-#define Z_OFFSET 100.0f
-#define Z_SCALE_FACTOR 20.0f
+#define SCALE_FACTOR_XY 30.0f
+#define Z_OFFSET 50.0f
+#define Z_SCALE_FACTOR 30.0f
 #define Y_OFFSET 200.0f //to scale leapmotion to our view
 
-#define SELECT_TRESHOLD 70.0f //hand hopening in mm
-#define RELEASE_TRESHOLD 90.0f //hand opening in mm
+#define SELECT_TRESHOLD 60.0f //hand hopening in mm
+#define RELEASE_TRESHOLD 80.0f //hand opening in mm
 #define DEFAULT_SPACING 2.0f
 
-#define HOLD_TIME 30 //nb of frame with hand closed
+#define HOLD_TIME 5 //nb of frame with hand closed
 
 glWidget::cube_t::cube_t(const QString& pName, float pSize, texId_t pText)
     :x_(0),
@@ -32,7 +32,6 @@ glWidget::cube_t::cube_t(const QString& pName, float pSize, texId_t pText)
 
 glWidget::glWidget(QWidget *parent) :
     Glview(60,parent),
-    select_(false),
     gridSize_(0),
     spacing_(DEFAULT_SPACING),
     handState_(OPEN)
@@ -128,7 +127,6 @@ void glWidget::onExit(const Controller& controller) {
 }
 
 void glWidget::onFrame(const Controller& controller) {
-    Q_UNUSED(controller);
     // Get the most recent frame and report some basic information
     const Frame frame = controller.frame();
 
@@ -143,34 +141,43 @@ void glWidget::onFrame(const Controller& controller) {
             handOpening = 0;
         else
             handOpening = hand.sphereRadius();
+
+        //small state machine to detect closed/opend hand
+        //use an hysteresis on hand sphere radius
         static int countClose = 0;
         static int countUp = 0;
         switch(handState_)
         {
         case OPEN:
-            countUp++;
-            select_ = false;
-            if (handOpening <= SELECT_TRESHOLD && countUp >= HOLD_TIME)
+            if (handOpening <= SELECT_TRESHOLD)
             {
-                handState_ = CLOSE;
-                countUp = 0;
+                countUp++;
+                if ( countUp >= HOLD_TIME )
+                {
+                    handState_ = CLOSE;
+                    countUp = 0;
+                }
             }
+            else
+                countUp = 0;
             break;
         case CLOSE:
-            countClose++;
-            if ( countClose >= HOLD_TIME || handOpening >= RELEASE_TRESHOLD )
+            if ( handOpening >= RELEASE_TRESHOLD )
             {
-                handState_ = OPEN;
-                select_ = true;
-                countClose = 0;
-                slotSelect();
+                countClose++;
+                if ( countClose >= HOLD_TIME )
+                {
+                    handState_ = OPEN;
+                    countClose = 0;
+                    slotSelect();
+                }
             }
+            else
+                countClose = 0;
             break;
         default:
-            select_ = false;
             break;
         }
-
 
         //adjust to our view coordinates
         palmPos_.x = pos.x/SCALE_FACTOR_XY;
@@ -317,7 +324,7 @@ void glWidget::drawPalmPos()
    drawCube(METAL,
             palmPos_.x ,
             palmPos_.y,
-            palmPos_.z, 0.5f);
+            palmPos_.z, BOX_SIZE/(4*gridSize_));
 }
 
 //init the view with a certain amount of cubes
