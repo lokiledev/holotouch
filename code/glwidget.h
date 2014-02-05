@@ -3,6 +3,7 @@
 
 #include <QImage>
 #include <QList>
+#include <QDir>
 
 #include "leapmotion/Leap.h"
 
@@ -29,8 +30,9 @@ public:
         texId_t texture_;
         bool selected_;
         bool drawn_;
+        QString fileName_;
         //constructor
-        cube_t(float pSize = 1.0f, texId_t pText = CRATE);
+        cube_t(const QString& pName = "", float pSize = 1.0f, texId_t pText = CRATE);
     };
 
 private:
@@ -43,6 +45,7 @@ private:
     QList<cube_t> cubeList_;
     int gridSize_;
     float spacing_;
+    QDir fileExplorer_;
 
 public:
     glWidget(QWidget *parent = 0);
@@ -79,6 +82,7 @@ public:
     void drawPalmPos();
     void drawCube(cube_t pCube);
     void drawCurrentGrid();
+    void initFileExplorer();
 
 private:
     void generateCubes(texId_t pTexture, int pNbCubes);

@@ -13,7 +13,7 @@
 #define DEFAULT_SPACING 2.0f
 
 
-glWidget::cube_t::cube_t(float pSize, texId_t pText)
+glWidget::cube_t::cube_t(const QString& pName, float pSize, texId_t pText)
     :x_(0),
      y_(0),
      z_(0),
@@ -21,7 +21,8 @@ glWidget::cube_t::cube_t(float pSize, texId_t pText)
      sizeOffset_(0),
      texture_(pText),
      selected_(false),
-     drawn_(false)
+     drawn_(false),
+     fileName_(pName)
 {
 }
 
@@ -39,7 +40,7 @@ glWidget::glWidget(QWidget *parent) :
     palmPos_.y = 0.0f;
     palmPos_.z = 5.0f;
     setCursor(Qt::BlankCursor);
-    generateCubes(CRATE,125);
+    initFileExplorer();
 }
 
 void glWidget::initializeGL()
@@ -309,7 +310,7 @@ void glWidget::generateCubes(texId_t pTexture, int pNbCubes)
     cubeList_.clear();
     for (int i=0; i<pNbCubes; ++i)
     {
-        cube_t cube(spacing_/3.0f, pTexture);
+        cube_t cube("",spacing_/3.0f, pTexture);
         cubeList_.append(cube);
     }
 }
@@ -397,6 +398,22 @@ void glWidget::handleSelection()
         }
     }
 }
+
+//generate the view items from the files in a folder
+void glWidget::initFileExplorer()
+{
+    fileExplorer_= QDir::home();
+    QStringList fileList = fileExplorer_.entryList();
+    QStringList::iterator it;
+    cubeList_.clear();
+    for( it = fileList.begin(); it != fileList.end(); it++)
+    {
+        //TODO: change texture according to file extension
+        cube_t item(*it,spacing_/3.0f,CRATE);
+        cubeList_.append(item);
+    }
+}
+
 
 void glWidget::slotPalmPos(Vector pPos)
 {
