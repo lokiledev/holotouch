@@ -68,6 +68,7 @@ public:
                   float pCenterY,
                   float pCenterZ,
                   float pSize);
+    void drawCube(const cube_t& pCube);
     void drawCube2DGrid(texId_t pTexture,
                         float pSpacing,
                         float pCubeSize,
@@ -80,7 +81,6 @@ public:
                         int pH,
                         int pW);
     void drawPalmPos();
-    void drawCube(cube_t pCube);
     void drawCurrentGrid();
     void initFileExplorer();
 

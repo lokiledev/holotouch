@@ -124,9 +124,6 @@ void glWidget::onFrame(const Controller& controller) {
     Q_UNUSED(controller);
     // Get the most recent frame and report some basic information
     const Frame frame = controller.frame();
-    /*std::cout << ", hands: " << frame.hands().count()
-               <<", palm pos: "<< frame.hands()[0].palmPosition()<<std::endl;
-    */
 
     selectMove_ = false;
     if (frame.gestures().count() > 0)
@@ -156,7 +153,8 @@ void glWidget::onFrame(const Controller& controller) {
     }
 }
 
-
+//helper function, loads a texture and assign it to an enum value
+//to help retrieve it later
 void glWidget::loadTexture(QString textureName, texId_t pId)
 {
     QImage qim_Texture;
@@ -170,6 +168,7 @@ void glWidget::loadTexture(QString textureName, texId_t pId)
     glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
 }
 
+//update the camera position
 void glWidget::slotNewHead(head_t pPos)
 {
     /*We inverse axes to compensate head position relative
@@ -180,6 +179,8 @@ void glWidget::slotNewHead(head_t pPos)
     head_.z = pPos.z;
 }
 
+
+//move slightly the camera, via keyboard commands for example
 void glWidget::slotMoveHead(int pAxis, float pDelta)
 {
     switch(pAxis)
@@ -197,6 +198,8 @@ void glWidget::slotMoveHead(int pAxis, float pDelta)
     }
 }
 
+
+//Draw 6 squares and apply the texture on each: absolute coordinates for the center
 void glWidget::drawCube(texId_t PtextureId, float pCenterX, float pCenterY,float pCenterZ, float pSize)
 {
 
@@ -259,7 +262,7 @@ void glWidget::drawCube2DGrid(texId_t pTexture,float pSpacing, float pCubeSize, 
     }
 }
 
-//Draw a 2D grid composed of L*H cubes of size CubeZise spaced by pSpacing
+//Draw a 3D grid composed of L*H cubes of size CubeZise spaced by pSpacing
 void glWidget::drawCube3DGrid(texId_t pTexture,
                               float pSpacing,
                               float pCubeSize,
@@ -287,15 +290,24 @@ void glWidget::drawCube3DGrid(texId_t pTexture,
     }
 }
 
-void glWidget::drawCube(cube_t pCube)
+//overloaded function for ease of use
+void glWidget::drawCube(const cube_t& pCube)
 {
     drawCube(pCube.texture_,
              pCube.x_,
              pCube.y_,
              pCube.z_,
              pCube.size_ + pCube.sizeOffset_);
+    if (pCube.fileName_.size() > 0)
+    {
+        renderText(pCube.x_,
+                   pCube.y_ - pCube.size_,
+                   pCube.z_ + pCube.size_,
+                   pCube.fileName_);
+    }
 }
 
+//draw a cube where the middle of the palm is
 void glWidget::drawPalmPos()
 {
     //normalize leap coordinates to our box size
@@ -305,6 +317,7 @@ void glWidget::drawPalmPos()
             palmPos_.z, 0.5f);
 }
 
+//init the view with a certain amount of cubes
 void glWidget::generateCubes(texId_t pTexture, int pNbCubes)
 {
     cubeList_.clear();
@@ -345,6 +358,8 @@ void glWidget::computeGrid(float pSpacing)
     }
 }
 
+//update the view, draw cubes with absolute center coordinates
+//then center the camera
 void glWidget::drawCurrentGrid()
 {
     QList<cube_t>::iterator it;
@@ -353,6 +368,8 @@ void glWidget::drawCurrentGrid()
     glTranslatef((gridSize_*spacing_)/2, (gridSize_*spacing_)/2, 0.0f);
 }
 
+
+//find the closest cube from the palm center
 int glWidget::closestCube(float pTreshold)
 {
     float minDist = 1000.0f;
@@ -372,6 +389,10 @@ int glWidget::closestCube(float pTreshold)
     return id;
 }
 
+/*Detect if a cube needs to be selected
+ *perform growing cube animation on each
+ *selected cube
+ */
 void glWidget::handleSelection()
 {
     int cube = closestCube(1.0f);
@@ -414,7 +435,7 @@ void glWidget::initFileExplorer()
     }
 }
 
-
+//Not used
 void glWidget::slotPalmPos(Vector pPos)
 {
     palmPos_ = pPos;
