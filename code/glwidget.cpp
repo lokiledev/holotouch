@@ -47,6 +47,10 @@ void glWidget::initializeGL()
 {
     loadTexture("../code/ressources/box.png", CRATE);
     loadTexture("../code/ressources/metal.jpg", METAL);
+    loadTexture("../code/ressources/Folder.png", FOLDER);
+    loadTexture("../code/ressources/music.png", MUSIC);
+    loadTexture("../code/ressources/picture.png", PICTURE);
+    loadTexture("../code/ressources/text.png", TEXT);
 
     glEnable(GL_TEXTURE_2D);
 
@@ -137,6 +141,8 @@ void glWidget::onFrame(const Controller& controller) {
     {
         Hand hand = frame.hands()[0];
         Vector pos = hand.palmPosition();
+        //closed hand hard to detect
+        // closed = select cube
         if ( hand.fingers().isEmpty() )
             handOpening_ = 0;
         else
@@ -426,13 +432,36 @@ void glWidget::handleSelection()
 void glWidget::initFileExplorer()
 {
     fileExplorer_= QDir::home();
-    QStringList fileList = fileExplorer_.entryList();
-    QStringList::iterator it;
+    QFileInfoList fileList = fileExplorer_.entryInfoList();
+    QFileInfoList::iterator it;
     cubeList_.clear();
     for( it = fileList.begin(); it != fileList.end(); it++)
     {
         //TODO: change texture according to file extension
-        cube_t item(*it,spacing_/3.0f,CRATE);
+
+        texId_t texture = CRATE;
+        if ( it->isDir() )
+            texture = FOLDER;
+        else
+        {
+            //TODO: add better management
+            QString ext = it->suffix();
+            if ( ext == "png" ||
+                 ext == "jpg" ||
+                 ext == "bmp")
+                texture = PICTURE;
+            else if ( ext == "mp3" ||
+                      ext == "wav" ||
+                      ext == "ogg" ||
+                      ext == "flac")
+                texture = MUSIC;
+           else if ( ext == "txt" ||
+                     ext == "sh" ||
+                     ext == "cpp" ||
+                     ext == "py" )
+                texture = TEXT;
+        }
+        cube_t item(it->fileName(),spacing_/3.0f, texture);
         cubeList_.append(item);
     }
 }

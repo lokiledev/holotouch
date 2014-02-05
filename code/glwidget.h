@@ -10,7 +10,7 @@
 #include "glview.h"
 #include "tracking_defines.h"
 
-#define NB_TEXTURE 2
+#define NB_TEXTURE 6
 using namespace Leap;
 
 class glWidget : public Glview, public Leap::Listener
@@ -18,7 +18,7 @@ class glWidget : public Glview, public Leap::Listener
     Q_OBJECT
 public:
     //typedef for textures management
-    typedef enum {CRATE, METAL,NONE = -1} texId_t;
+    typedef enum {CRATE, METAL, FOLDER, MUSIC, PICTURE, TEXT, NONE = -1} texId_t;
 
     //simple way of describing a cube/item
     struct cube_t {
