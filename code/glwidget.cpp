@@ -28,6 +28,7 @@ glWidget::cube_t::cube_t(float pSize, texId_t pText)
 glWidget::glWidget(QWidget *parent) :
     Glview(60,parent),
     handOpening_(10.0f),
+    selectMove_(false),
     gridSize_(0),
     spacing_(DEFAULT_SPACING)
 {
@@ -125,6 +126,15 @@ void glWidget::onFrame(const Controller& controller) {
     /*std::cout << ", hands: " << frame.hands().count()
                <<", palm pos: "<< frame.hands()[0].palmPosition()<<std::endl;
     */
+
+    selectMove_ = false;
+    if (frame.gestures().count() > 0)
+    {
+        Gesture up = frame.gestures()[0];
+        if (up.type() == Gesture::TYPE_SWIPE)
+            selectMove_ = true;
+    }
+
     if (frame.hands().count() == 1)
     {
         Hand hand = frame.hands()[0];

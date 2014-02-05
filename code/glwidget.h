@@ -39,6 +39,7 @@ private:
     head_t head_;
     Leap::Vector palmPos_;
     float handOpening_;
+    bool selectMove_;
     QList<cube_t> cubeList_;
     int gridSize_;
     float spacing_;
