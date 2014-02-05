@@ -20,6 +20,9 @@ public:
     //typedef for textures management
     typedef enum {CRATE, METAL, FOLDER, MUSIC, PICTURE, TEXT, NONE = -1} texId_t;
 
+    //state machine for clic like gestures
+    typedef enum {OPEN,CLOSE} handState_t;
+
     //simple way of describing a cube/item
     struct cube_t {
         float x_;
@@ -40,12 +43,12 @@ private:
     //head positions in cm relative to screen center.
     head_t head_;
     Leap::Vector palmPos_;
-    float handOpening_;
-    bool selectMove_;
+    bool select_;
     QList<cube_t> cubeList_;
     int gridSize_;
     float spacing_;
     QDir fileExplorer_;
+    handState_t handState_;
 
 public:
     glWidget(QWidget *parent = 0);
@@ -96,6 +99,8 @@ public slots:
     void slotNewHead(head_t pPos);
     void slotMoveHead(int pAxis, float pDelta);
     void slotPalmPos(Leap::Vector pPos);
+private slots:
+    void slotSelect(void);
 };
 
 #endif // GLWIDGET_H

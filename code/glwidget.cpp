@@ -7,13 +7,15 @@
 #define BOX_SIZE 5.0f //the grid is always inside the box
 
 #define SCALE_FACTOR_XY 20.0f
-#define Z_OFFSET 200.0f
-#define Z_SCALE_FACTOR 10.0f
-#define Y_OFFSET 200.0f
-#define SELECT_TRESHOLD 65.0f
-#define RELEASE_TRESHOLD 100.0f
+#define Z_OFFSET 100.0f
+#define Z_SCALE_FACTOR 20.0f
+#define Y_OFFSET 200.0f //to scale leapmotion to our view
+
+#define SELECT_TRESHOLD 70.0f //hand hopening in mm
+#define RELEASE_TRESHOLD 90.0f //hand opening in mm
 #define DEFAULT_SPACING 2.0f
-#define Z_HEAD_OFF 0.5f
+
+#define HOLD_TIME 30 //nb of frame with hand closed
 
 glWidget::cube_t::cube_t(const QString& pName, float pSize, texId_t pText)
     :x_(0),
@@ -30,10 +32,10 @@ glWidget::cube_t::cube_t(const QString& pName, float pSize, texId_t pText)
 
 glWidget::glWidget(QWidget *parent) :
     Glview(60,parent),
-    handOpening_(10.0f),
-    selectMove_(false),
+    select_(false),
     gridSize_(0),
-    spacing_(DEFAULT_SPACING)
+    spacing_(DEFAULT_SPACING),
+    handState_(OPEN)
 {
     head_.x = 0.0;
     head_.y = 0.0;
@@ -42,7 +44,7 @@ glWidget::glWidget(QWidget *parent) :
     palmPos_.y = 0.0f;
     palmPos_.z = 5.0f;
     setCursor(Qt::BlankCursor);
-    generateCubes(CRATE,4*4*4);
+    generateCubes(CRATE,5*5*5);
     //loadFolder();
 }
 
@@ -102,7 +104,6 @@ void glWidget::paintGL()
     drawCurrentGrid();
 }
 
-
 void glWidget::onInit(const Controller& controller) {
     Q_UNUSED(controller);
     std::cout << "Initialized" << std::endl;
@@ -131,24 +132,45 @@ void glWidget::onFrame(const Controller& controller) {
     // Get the most recent frame and report some basic information
     const Frame frame = controller.frame();
 
-    selectMove_ = false;
-    if (frame.gestures().count() > 0)
-    {
-        Gesture up = frame.gestures()[0];
-        if (up.type() == Gesture::TYPE_SWIPE)
-            selectMove_ = true;
-    }
-
     if (frame.hands().count() == 1)
     {
         Hand hand = frame.hands()[0];
         Vector pos = hand.palmPosition();
         //closed hand hard to detect
         // closed = select cube
+        float handOpening = 0;
         if ( hand.fingers().isEmpty() )
-            handOpening_ = 0;
+            handOpening = 0;
         else
-            handOpening_ = hand.sphereRadius();
+            handOpening = hand.sphereRadius();
+        static int countClose = 0;
+        static int countUp = 0;
+        switch(handState_)
+        {
+        case OPEN:
+            countUp++;
+            select_ = false;
+            if (handOpening <= SELECT_TRESHOLD && countUp >= HOLD_TIME)
+            {
+                handState_ = CLOSE;
+                countUp = 0;
+            }
+            break;
+        case CLOSE:
+            countClose++;
+            if ( countClose >= HOLD_TIME || handOpening >= RELEASE_TRESHOLD )
+            {
+                handState_ = OPEN;
+                select_ = true;
+                countClose = 0;
+                slotSelect();
+            }
+            break;
+        default:
+            select_ = false;
+            break;
+        }
+
 
         //adjust to our view coordinates
         palmPos_.x = pos.x/SCALE_FACTOR_XY;
@@ -384,23 +406,6 @@ int glWidget::closestCube(float pTreshold)
  */
 void glWidget::handleSelection()
 {
-    int cube = closestCube(spacing_/2);
-    if (cube != -1 )
-    {
-        if ( !cubeList_[cube].selected_  && (handOpening_ <= SELECT_TRESHOLD) )
-        {
-            cubeList_[cube].selected_ = true;
-        }
-    }
-    else if (handOpening_ >= RELEASE_TRESHOLD)
-    {
-        for(int i = 0; i < cubeList_.size(); i++)
-        {
-            if (i != cube)
-                cubeList_[i].selected_ = false;
-        }
-    }
-
     //growing animation on selected cubes
     for (QList<cube_t>::iterator it = cubeList_.begin(); it != cubeList_.end(); it++)
       {
@@ -485,6 +490,29 @@ void glWidget::slotMoveHead(int pAxis, float pDelta)
             head_.z += pDelta;
         default:
             break;
+    }
+}
+
+
+//called when select gesture is made
+void glWidget::slotSelect(void)
+{
+    int cube = closestCube(spacing_);
+
+    //hand is on a single cube
+    if (cube != -1 )
+    {
+        //change state of given cube
+        cubeList_[cube].selected_ = !cubeList_[cube].selected_;
+    }
+    //hand out of grid ====> release everything
+    else
+    {
+        for(int i = 0; i < cubeList_.size(); i++)
+        {
+            if (i != cube)
+                cubeList_[i].selected_ = false;
+        }
     }
 }
 
