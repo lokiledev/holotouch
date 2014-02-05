@@ -8,6 +8,9 @@
 #define Z_OFFSET 200.0f
 #define Z_SCALE_FACTOR 10.0f
 #define Y_OFFSET 200.0f
+#define SELECT_TRESHOLD 65.0f
+#define RELEASE_TRESHOLD 100.0f
+#define DEFAULT_SPACING 2.0f
 
 
 glWidget::cube_t::cube_t(float pSize, texId_t pText)
@@ -24,8 +27,9 @@ glWidget::cube_t::cube_t(float pSize, texId_t pText)
 
 glWidget::glWidget(QWidget *parent) :
     Glview(60,parent),
+    handOpening_(10.0f),
     gridSize_(0),
-    spacing_(1.0f)
+    spacing_(DEFAULT_SPACING)
 {
     head_.x = 0.0;
     head_.y = 0.0;
@@ -83,13 +87,8 @@ void glWidget::paintGL()
     gluLookAt(head_.x,head_.y,head_.z, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f,0.0f);
 
     // Objects
-    // =======
-   /* drawCube(CRATE,0,0,0,2.0f);
-    glTranslatef(3,0,0);
-    drawCube(CRATE,0,0,0,2.0f);
-    */
     drawPalmPos();
-    computeGrid(2.0f);
+    computeGrid(spacing_);
     handleSelection();
     drawCurrentGrid();
     //drawCube3DGrid(CRATE, 1.0f, 1.0f, 5, 5, 5);
@@ -130,6 +129,10 @@ void glWidget::onFrame(const Controller& controller) {
     {
         Hand hand = frame.hands()[0];
         Vector pos = hand.palmPosition();
+        if ( hand.fingers().isEmpty() )
+            handOpening_ = 0;
+        else
+            handOpening_ = hand.sphereRadius();
 
         //adjust to our view coordinates
         palmPos_.x = pos.x/SCALE_FACTOR_XY;
@@ -296,7 +299,7 @@ void glWidget::generateCubes(texId_t pTexture, int pNbCubes)
     cubeList_.clear();
     for (int i=0; i<pNbCubes; ++i)
     {
-        cube_t cube(1.0f, pTexture);
+        cube_t cube(spacing_/3.0f, pTexture);
         cubeList_.append(cube);
     }
 }
@@ -363,20 +366,25 @@ void glWidget::handleSelection()
     int cube = closestCube(1.0f);
     if (cube != -1 )
     {
-        if ( cubeList_[cube].selected_ )
+        if ( !cubeList_[cube].selected_  && (handOpening_ <= SELECT_TRESHOLD) )
         {
-            if ( cubeList_[cube].sizeOffset_ <= 1.0f )
-            {
-                cubeList_[cube].sizeOffset_ += 0.05f;
-            }
-        }
-        else
             cubeList_[cube].selected_ = true;
+        }
     }
-    for(int i = 0; i < cubeList_.size(); i++)
+    else if (handOpening_ >= RELEASE_TRESHOLD)
     {
-        if (i != cube)
-            cubeList_[i].selected_ = false;
+        for(int i = 0; i < cubeList_.size(); i++)
+        {
+            if (i != cube)
+                cubeList_[i].selected_ = false;
+        }
+    }
+    for (QList<cube_t>::iterator it = cubeList_.begin(); it != cubeList_.end(); it++)
+      {
+        if ( (it->selected_) && (it->sizeOffset_ <= 1.0f) )
+        {
+            it->sizeOffset_ += 0.05f;
+        }
     }
 }
 

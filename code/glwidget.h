@@ -38,6 +38,7 @@ private:
     //head positions in cm relative to screen center.
     head_t head_;
     Leap::Vector palmPos_;
+    float handOpening_;
     QList<cube_t> cubeList_;
     int gridSize_;
     float spacing_;
@@ -69,11 +70,11 @@ public:
                         int pL,
                         int pH);
     void drawCube3DGrid(texId_t pTexture,
-                                  float pSpacing,
-                                  float pCubeSize,
-                                  int pL,
-                                  int pH,
-                                  int pW);
+                        float pSpacing,
+                        float pCubeSize,
+                        int pL,
+                        int pH,
+                        int pW);
     void drawPalmPos();
     void drawCube(cube_t pCube);
     void drawCurrentGrid();
