@@ -4,6 +4,8 @@
 #include <GL/glu.h>
 #include <iostream>
 
+#define BOX_SIZE 5.0f //the grid is always inside the box
+
 #define SCALE_FACTOR_XY 20.0f
 #define Z_OFFSET 200.0f
 #define Z_SCALE_FACTOR 10.0f
@@ -11,7 +13,7 @@
 #define SELECT_TRESHOLD 65.0f
 #define RELEASE_TRESHOLD 100.0f
 #define DEFAULT_SPACING 2.0f
-
+#define Z_HEAD_OFF 0.5f
 
 glWidget::cube_t::cube_t(const QString& pName, float pSize, texId_t pText)
     :x_(0),
@@ -40,7 +42,8 @@ glWidget::glWidget(QWidget *parent) :
     palmPos_.y = 0.0f;
     palmPos_.z = 5.0f;
     setCursor(Qt::BlankCursor);
-    initFileExplorer();
+    generateCubes(CRATE,4*4*4);
+    //loadFolder();
 }
 
 void glWidget::initializeGL()
@@ -94,10 +97,9 @@ void glWidget::paintGL()
 
     // Objects
     drawPalmPos();
-    computeGrid(spacing_);
+    computeGrid();
     handleSelection();
     drawCurrentGrid();
-    //drawCube3DGrid(CRATE, 1.0f, 1.0f, 5, 5, 5);
 }
 
 
@@ -174,35 +176,6 @@ void glWidget::loadTexture(QString textureName, texId_t pId)
     glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
 }
 
-//update the camera position
-void glWidget::slotNewHead(head_t pPos)
-{
-    /*We inverse axes to compensate head position relative
-     * to the cube.
-     */
-    head_.x = -pPos.x;
-    head_.y = -pPos.y;
-    head_.z = pPos.z;
-}
-
-
-//move slightly the camera, via keyboard commands for example
-void glWidget::slotMoveHead(int pAxis, float pDelta)
-{
-    switch(pAxis)
-    {
-        case 0:
-           head_.x += pDelta;
-           break;
-        case 1:
-            head_.y += pDelta;
-            break;
-        case 2:
-            head_.z += pDelta;
-        default:
-            break;
-    }
-}
 
 
 //Draw 6 squares and apply the texture on each: absolute coordinates for the center
@@ -336,15 +309,26 @@ void glWidget::generateCubes(texId_t pTexture, int pNbCubes)
     }
 }
 
-//generate a cubic grid from cubeList_
-//pSpacing is between each cube center
-void glWidget::computeGrid(float pSpacing)
+/*generate a cubic grid from cubeList_
+ *the grid is always in a box of BOX_SIZE
+ * so the more cubes, the more smaller it appears
+ */
+void glWidget::computeGrid()
 {
-    spacing_ = pSpacing;
     int nCube = std::roundf(std::cbrt(cubeList_.size()));
+
+    //number of cube per dimension
+    gridSize_ = nCube;
+
+    //distance between 2 cube's centers
+    spacing_ = BOX_SIZE/nCube;
+
+    //apparent size of the cube
+    float size = spacing_/2;
 
     //to center front face on (0,0,0)
     float offset = (nCube-1)*spacing_/2;
+
     for (int z = 0; z <= nCube; z++)
     {
         for (int y = 0; y <= nCube; y++)
@@ -355,11 +339,10 @@ void glWidget::computeGrid(float pSpacing)
                 //avoid overflow
                 if (i < cubeList_.size() )
                 {
+                    cubeList_[i].size_ = size;
                     cubeList_[i].x_ = x*spacing_ - offset;
                     cubeList_[i].y_ = y*spacing_ - offset;
                     cubeList_[i].z_ = -z*spacing_;
-                    if ( !cubeList_[i].selected_ )
-                        cubeList_[i].sizeOffset_ = 0;
                 }
             }
         }
@@ -373,9 +356,7 @@ void glWidget::drawCurrentGrid()
     QList<cube_t>::iterator it;
     for (it = cubeList_.begin(); it != cubeList_.end(); it++)
         drawCube(*it);
-    glTranslatef((gridSize_*spacing_)/2, (gridSize_*spacing_)/2, 0.0f);
 }
-
 
 //find the closest cube from the palm center
 int glWidget::closestCube(float pTreshold)
@@ -403,7 +384,7 @@ int glWidget::closestCube(float pTreshold)
  */
 void glWidget::handleSelection()
 {
-    int cube = closestCube(1.0f);
+    int cube = closestCube(spacing_/2);
     if (cube != -1 )
     {
         if ( !cubeList_[cube].selected_  && (handOpening_ <= SELECT_TRESHOLD) )
@@ -419,19 +400,30 @@ void glWidget::handleSelection()
                 cubeList_[i].selected_ = false;
         }
     }
+
+    //growing animation on selected cubes
     for (QList<cube_t>::iterator it = cubeList_.begin(); it != cubeList_.end(); it++)
       {
-        if ( (it->selected_) && (it->sizeOffset_ <= 1.0f) )
+        if ( it->selected_ )
         {
-            it->sizeOffset_ += 0.05f;
+             if(it->sizeOffset_ <= it->size_)
+            {
+                it->sizeOffset_ += it->size_/10;
+            }
+        }
+        else if ( it->sizeOffset_ > 0)
+        {
+            it->sizeOffset_ -= it->size_/20;
+            if ( it->sizeOffset_ <= 0 )
+                it->sizeOffset_ = 0;
         }
     }
 }
 
 //generate the view items from the files in a folder
-void glWidget::initFileExplorer()
+void glWidget::loadFolder(const QDir& pFolder)
 {
-    fileExplorer_= QDir::home();
+    fileExplorer_= pFolder;
     QFileInfoList fileList = fileExplorer_.entryInfoList();
     QFileInfoList::iterator it;
     cubeList_.clear();
@@ -461,8 +453,38 @@ void glWidget::initFileExplorer()
                      ext == "py" )
                 texture = TEXT;
         }
-        cube_t item(it->fileName(),spacing_/3.0f, texture);
+        //create new cube, size doesn't matter, recomputed each time
+        cube_t item(it->fileName(), 1.0f, texture);
         cubeList_.append(item);
+    }
+}
+
+//update the camera position
+void glWidget::slotNewHead(head_t pPos)
+{
+    /*We inverse axes to compensate head position relative
+     * to the cube.
+     */
+    head_.x = -pPos.x;
+    head_.y = -pPos.y;
+    head_.z =  pPos.z;
+}
+
+//move slightly the camera, via keyboard commands for example
+void glWidget::slotMoveHead(int pAxis, float pDelta)
+{
+    switch(pAxis)
+    {
+        case 0:
+            head_.x += pDelta;
+            break;
+        case 1:
+            head_.y += pDelta;
+            break;
+        case 2:
+            head_.z += pDelta;
+        default:
+            break;
     }
 }
 

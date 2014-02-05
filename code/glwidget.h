@@ -82,11 +82,11 @@ public:
                         int pW);
     void drawPalmPos();
     void drawCurrentGrid();
-    void initFileExplorer();
+    void loadFolder(const QDir& pFolder = QDir::home());
 
 private:
     void generateCubes(texId_t pTexture, int pNbCubes);
-    void computeGrid(float pSpacing);
+    void computeGrid();
     int closestCube(float pTreshold);
     void handleSelection();
 
