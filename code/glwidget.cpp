@@ -43,8 +43,8 @@ glWidget::glWidget(QWidget *parent) :
     palmPos_.y = 0.0f;
     palmPos_.z = 5.0f;
     setCursor(Qt::BlankCursor);
-    generateCubes(CRATE,5*5*5);
-    //loadFolder();
+    //generateCubes(CRATE,5*5*5);
+    loadFolder();
 }
 
 void glWidget::initializeGL()
