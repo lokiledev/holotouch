@@ -526,7 +526,7 @@ void glWidget::reloadFolder()
     //protect access on the datalist
     QMutexLocker locker(&mutexList_);
 
-    QDebug(new QString("loaded folder: "+ fileExplorer_.path()));
+    qDebug() << "loaded folder: "<< fileExplorer_.path();
 
     QFileInfoList fileList = fileExplorer_.entryInfoList();
     QFileInfoList::const_iterator it;
