@@ -526,23 +526,21 @@ void glWidget::reloadFolder()
     //protect access on the datalist
     QMutexLocker locker(&mutexList_);
 
-    std::cout<<"loaded folder: "<<fileExplorer_.path().toStdString()<<std::endl;
+    QDebug(new QString("loaded folder: "+ fileExplorer_.path()));
 
     QFileInfoList fileList = fileExplorer_.entryInfoList();
     QFileInfoList::const_iterator it;
     QList<item_t> newList;
 
-    std::cout<<"reloading list\n";
     for( it = fileList.cbegin(); it != fileList.cend(); it++)
     {
-        //TODO: change texture according to file extension
-
+        //TODO: choose better textures
         texId_t texture = CRATE;
         if ( it->isDir() )
             texture = FOLDER;
         else
         {
-            //TODO: add better management
+            //TODO: add more extensions
             QString ext = it->suffix();
             if ( ext == "png" ||
                  ext == "jpg" ||
@@ -617,15 +615,19 @@ void glWidget::slotSelect(void)
             }
             else //open previously selected item
             {
-                if ( item < fileExplorer_.entryInfoList().size() &&
-                     fileExplorer_.entryInfoList().at(item).isDir() )
+                if ( item < fileExplorer_.entryInfoList().size() )
                 {
-                    //reset view to new folder
-                    changeDirectory(fileExplorer_.entryInfoList().at(item).fileName());
-                }
-                else
-                {
-                    //launch the file in external process.
+                    QFileInfo info =  fileExplorer_.entryInfoList().at(item);
+                    if ( info.isDir() )
+                    {
+                        //reset view to new folder
+                        changeDirectory(info.fileName());
+                    }
+                    else
+                    {
+                        QDesktopServices::openUrl(
+                                    QUrl("file://"+ info.absoluteFilePath()));
+                    }
                 }
             }
 
