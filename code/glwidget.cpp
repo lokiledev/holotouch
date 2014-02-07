@@ -17,7 +17,7 @@
 
 #define HOLD_TIME 5 //nb of frame with hand closed
 
-glWidget::cube_t::cube_t(const QString& pName, float pSize, texId_t pText)
+glWidget::item_t::item_t(const QString& pName, float pSize, texId_t pText)
     :x_(0),
      y_(0),
      z_(0),
@@ -253,6 +253,70 @@ void glWidget::drawCube(texId_t PtextureId, float pCenterX, float pCenterY,float
     glEnd();
 }
 
+//Draw 6 squares and apply the texture on each: absolute coordinates for the center
+void glWidget::drawTile(texId_t PtextureId, float pCenterX, float pCenterY,float pCenterZ, float pSize)
+{
+    float half = pSize/2;
+    float thickness = pSize/8;
+    glBindTexture(GL_TEXTURE_2D, texture_[PtextureId]);
+
+    glBegin(GL_QUADS);
+    // front fixed Z near (positive)
+    glTexCoord2f(0.0f, 0.0f); glVertex3f(pCenterX-half, pCenterY-half, pCenterZ-thickness);
+    glTexCoord2f(1.0f, 0.0f); glVertex3f(pCenterX+half, pCenterY-half, pCenterZ-thickness);
+    glTexCoord2f(1.0f, 1.0f); glVertex3f(pCenterX+half, pCenterY+half, pCenterZ-thickness);
+    glTexCoord2f(0.0f, 1.0f); glVertex3f(pCenterX-half, pCenterY+half, pCenterZ-thickness);
+
+    // back fixed z far (negative)
+    glTexCoord2f(1.0f, 0.0f); glVertex3f(pCenterX-half, pCenterY-half, pCenterZ+thickness);
+    glTexCoord2f(1.0f, 1.0f); glVertex3f(pCenterX-half, pCenterY+half, pCenterZ+thickness);
+    glTexCoord2f(0.0f, 1.0f); glVertex3f(pCenterX+half, pCenterY+half, pCenterZ+thickness);
+    glTexCoord2f(0.0f, 0.0f); glVertex3f(pCenterX+half, pCenterY-half, pCenterZ+thickness);
+
+    // top fixed Y up
+    glTexCoord2f(0.0f, 1.0f); glVertex3f(pCenterX-half,  pCenterY+half, pCenterZ-thickness);
+    glTexCoord2f(0.0f, 0.0f); glVertex3f(pCenterX-half,  pCenterY+half, pCenterZ+thickness);
+    glTexCoord2f(1.0f, 0.0f); glVertex3f(pCenterX+half,  pCenterY+half, pCenterZ+thickness);
+    glTexCoord2f(1.0f, 1.0f); glVertex3f(pCenterX+half,  pCenterY+half, pCenterZ-thickness);
+
+    // bottom fixed Y down
+    glTexCoord2f(1.0f, 1.0f); glVertex3f(pCenterX-half, pCenterY-half, pCenterZ-thickness);
+    glTexCoord2f(0.0f, 1.0f); glVertex3f(pCenterX+half, pCenterY-half, pCenterZ-thickness);
+    glTexCoord2f(0.0f, 0.0f); glVertex3f(pCenterX+half, pCenterY-half, pCenterZ+thickness);
+    glTexCoord2f(1.0f, 0.0f); glVertex3f(pCenterX-half, pCenterY-half, pCenterZ+thickness);
+
+    // Right fixed X (positive)
+    glTexCoord2f(1.0f, 0.0f); glVertex3f(pCenterX+half, pCenterY-half, pCenterZ-thickness);
+    glTexCoord2f(1.0f, 1.0f); glVertex3f(pCenterX+half, pCenterY+half, pCenterZ-thickness);
+    glTexCoord2f(0.0f, 1.0f); glVertex3f(pCenterX+half, pCenterY+half, pCenterZ+thickness);
+    glTexCoord2f(0.0f, 0.0f); glVertex3f(pCenterX+half, pCenterY-half, pCenterZ+thickness);
+
+    // Left fixed x negative
+    glTexCoord2f(0.0f, 0.0f); glVertex3f(pCenterX-half, pCenterY-half, pCenterZ-thickness);
+    glTexCoord2f(1.0f, 0.0f); glVertex3f(pCenterX-half, pCenterY-half, pCenterZ+thickness);
+    glTexCoord2f(1.0f, 1.0f); glVertex3f(pCenterX-half, pCenterY+half, pCenterZ+thickness);
+    glTexCoord2f(0.0f, 1.0f); glVertex3f(pCenterX-half, pCenterY+half, pCenterZ-thickness);
+    glEnd();
+}
+
+void glWidget::drawTile(const item_t& pItem)
+{
+    drawTile(pItem.texture_,
+             pItem.x_,
+             pItem.y_,
+             pItem.z_,
+             pItem.size_ + pItem.sizeOffset_);
+    if (pItem.fileName_.size() > 0)
+    {
+        //text is masked by cubes,
+        //draw under to see it clearly
+        renderText(pItem.x_ - pItem.size_/2.0f,
+                   pItem.y_ - pItem.size_,
+                   pItem.z_ + pItem.size_/2.0f,
+                   pItem.fileName_);
+    }
+}
+
 //Draw a 2D grid composed of L*H cubes of size CubeZise spaced by pSpacing
 void glWidget::drawCube2DGrid(texId_t pTexture,float pSpacing, float pCubeSize, int pL,int pH)
 {
@@ -299,7 +363,7 @@ void glWidget::drawCube3DGrid(texId_t pTexture,
 }
 
 //overloaded function for ease of use
-void glWidget::drawCube(const cube_t& pCube)
+void glWidget::drawCube(const item_t& pCube)
 {
     drawCube(pCube.texture_,
              pCube.x_,
@@ -330,48 +394,48 @@ void glWidget::drawPalmPos()
 //init the view with a certain amount of cubes
 void glWidget::generateCubes(texId_t pTexture, int pNbCubes)
 {
-    cubeList_.clear();
+    itemList_.clear();
     for (int i=0; i<pNbCubes; ++i)
     {
-        cube_t cube("",spacing_/3.0f, pTexture);
-        cubeList_.append(cube);
+        item_t item("",spacing_/3.0f, pTexture);
+        itemList_.append(item);
     }
 }
 
-/*generate a cubic grid from cubeList_
+/*generate a cubic grid from itemList_
  *the grid is always in a box of BOX_SIZE
  * so the more cubes, the more smaller it appears
  */
 void glWidget::computeGrid()
 {
-    int nCube = std::roundf(std::cbrt(cubeList_.size()));
+    int nbItem = std::roundf(std::cbrt(itemList_.size()));
 
     //number of cube per dimension
-    gridSize_ = nCube;
+    gridSize_ = nbItem;
 
     //distance between 2 cube's centers
-    spacing_ = BOX_SIZE/nCube;
+    spacing_ = BOX_SIZE/nbItem;
 
     //apparent size of the cube
     float size = spacing_/2;
 
     //to center front face on (0,0,0)
-    float offset = (nCube-1)*spacing_/2;
+    float offset = (nbItem-1)*spacing_/2;
 
-    for (int z = 0; z <= nCube; z++)
+    for (int z = 0; z <= nbItem; z++)
     {
-        for (int y = 0; y <= nCube; y++)
+        for (int y = 0; y <= nbItem; y++)
         {
-            for (int x = 0; x <= nCube; x++)
+            for (int x = 0; x <= nbItem; x++)
             {
-                int i = z*nCube*nCube + y*nCube + x;
+                int i = z*nbItem*nbItem + y*nbItem + x;
                 //avoid overflow
-                if (i < cubeList_.size() )
+                if (i < itemList_.size() )
                 {
-                    cubeList_[i].size_ = size;
-                    cubeList_[i].x_ = x*spacing_ - offset;
-                    cubeList_[i].y_ = y*spacing_ - offset;
-                    cubeList_[i].z_ = -z*spacing_;
+                    itemList_[i].size_ = size;
+                    itemList_[i].x_ = x*spacing_ - offset;
+                    itemList_[i].y_ = y*spacing_ - offset;
+                    itemList_[i].z_ = -z*spacing_;
                 }
             }
         }
@@ -382,18 +446,19 @@ void glWidget::computeGrid()
 //then center the camera
 void glWidget::drawCurrentGrid()
 {
-    QList<cube_t>::iterator it;
-    for (it = cubeList_.begin(); it != cubeList_.end(); it++)
-        drawCube(*it);
+    QList<item_t>::iterator it;
+    for (it = itemList_.begin(); it != itemList_.end(); it++)
+        drawTile(*it);
+        //drawCube(*it);
 }
 
 //find the closest cube from the palm center
-int glWidget::closestCube(float pTreshold)
+int glWidget::closestItem(float pTreshold)
 {
     float minDist = 1000.0f;
-    QList<cube_t>::iterator it;
+    QList<item_t>::iterator it;
     int id = -1, i = 0;
-    for (it = cubeList_.begin(); it != cubeList_.end(); it++)
+    for (it = itemList_.begin(); it != itemList_.end(); it++)
     {
         Leap::Vector testV(it->x_,it->y_, it->z_);
         float delta = palmPos_.distanceTo(testV);
@@ -414,7 +479,7 @@ int glWidget::closestCube(float pTreshold)
 void glWidget::handleSelection()
 {
     //growing animation on selected cubes
-    for (QList<cube_t>::iterator it = cubeList_.begin(); it != cubeList_.end(); it++)
+    for (QList<item_t>::iterator it = itemList_.begin(); it != itemList_.end(); it++)
       {
         if ( it->selected_ )
         {
@@ -438,7 +503,7 @@ void glWidget::loadFolder(const QDir& pFolder)
     fileExplorer_= pFolder;
     QFileInfoList fileList = fileExplorer_.entryInfoList();
     QFileInfoList::iterator it;
-    cubeList_.clear();
+    itemList_.clear();
     for( it = fileList.begin(); it != fileList.end(); it++)
     {
         //TODO: change texture according to file extension
@@ -466,8 +531,8 @@ void glWidget::loadFolder(const QDir& pFolder)
                 texture = TEXT;
         }
         //create new cube, size doesn't matter, recomputed each time
-        cube_t item(it->fileName(), 1.0f, texture);
-        cubeList_.append(item);
+        item_t item(it->fileName(), 1.0f, texture);
+        itemList_.append(item);
     }
 }
 
@@ -504,21 +569,21 @@ void glWidget::slotMoveHead(int pAxis, float pDelta)
 //called when select gesture is made
 void glWidget::slotSelect(void)
 {
-    int cube = closestCube(spacing_);
+    int item = closestItem(spacing_);
 
-    //hand is on a single cube
-    if (cube != -1 )
+    //hand is on a single item
+    if (item != -1 )
     {
-        //change state of given cube
-        cubeList_[cube].selected_ = !cubeList_[cube].selected_;
+        //change state of given item
+        itemList_[item].selected_ = !itemList_[item].selected_;
     }
     //hand out of grid ====> release everything
     else
     {
-        for(int i = 0; i < cubeList_.size(); i++)
+        for(int i = 0; i < itemList_.size(); i++)
         {
-            if (i != cube)
-                cubeList_[i].selected_ = false;
+            if (i != item)
+                itemList_[i].selected_ = false;
         }
     }
 }

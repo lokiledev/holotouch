@@ -24,7 +24,7 @@ public:
     typedef enum {OPEN,CLOSE} handState_t;
 
     //simple way of describing a cube/item
-    struct cube_t {
+    struct item_t {
         float x_;
         float y_;
         float z_;
@@ -35,7 +35,7 @@ public:
         bool drawn_;
         QString fileName_;
         //constructor
-        cube_t(const QString& pName = "", float pSize = 1.0f, texId_t pText = CRATE);
+        item_t(const QString& pName = "", float pSize = 1.0f, texId_t pText = CRATE);
     };
 
 private:
@@ -43,7 +43,7 @@ private:
     //head positions in cm relative to screen center.
     head_t head_;
     Leap::Vector palmPos_;
-    QList<cube_t> cubeList_;
+    QList<item_t> itemList_;
     int gridSize_;
     float spacing_;
     QDir fileExplorer_;
@@ -70,7 +70,13 @@ public:
                   float pCenterY,
                   float pCenterZ,
                   float pSize);
-    void drawCube(const cube_t& pCube);
+    void drawCube(const item_t& pCube);
+    void drawTile(texId_t PtextureId,
+                  float pCenterX,
+                  float pCenterY,
+                  float pCenterZ,
+                  float pSize);
+    void drawTile(const item_t& pItem);
     void drawCube2DGrid(texId_t pTexture,
                         float pSpacing,
                         float pCubeSize,
@@ -89,7 +95,7 @@ public:
 private:
     void generateCubes(texId_t pTexture, int pNbCubes);
     void computeGrid();
-    int closestCube(float pTreshold);
+    int closestItem(float pTreshold);
     void handleSelection();
 
 signals:
