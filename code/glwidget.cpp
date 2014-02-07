@@ -630,6 +630,10 @@ void glWidget::slotSelect(void)
             }
 
         }
+        else if (selectionMode_ == MULTIPLE)
+        {
+            itemList_[item].selected_ = !itemList_[item].selected_ ;
+        }
     }
     //hand out of grid ====> release everything
     else
