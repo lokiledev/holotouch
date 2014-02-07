@@ -150,6 +150,16 @@ void Facetrack::detectHead(void)
     {
         stabilize(faces[0]);
     }
+    else
+    {
+        //recenter the camera
+        Rect center;
+        center.x = frameCpy_.cols/2 - 50;
+        center.y = frameCpy_.rows/2 - 50;
+        center.width = 100;
+        center.height = 100;
+        stabilize(center);
+    }
  }
 
 /* Convert the rectangle found in 2D to 3D pos in unit box

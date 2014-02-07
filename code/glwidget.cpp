@@ -59,6 +59,7 @@ void glWidget::initializeGL()
     loadTexture("../code/ressources/music.png", MUSIC);
     loadTexture("../code/ressources/picture.png", PICTURE);
     loadTexture("../code/ressources/text.png", TEXT);
+    loadTexture("../code/ressources/video.png", VIDEO);
 
     glEnable(GL_TEXTURE_2D);
 
@@ -556,6 +557,10 @@ void glWidget::reloadFolder()
                      ext == "cpp" ||
                      ext == "py" )
                 texture = TEXT;
+            else if ( ext == "mp4" ||
+                      ext == "avi" ||
+                      ext == "mkv")
+                texture = VIDEO;
         }
         //create new cube, size doesn't matter, recomputed each time
         item_t item(it->fileName(), 1.0f, texture);

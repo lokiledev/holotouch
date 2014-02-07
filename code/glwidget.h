@@ -11,7 +11,7 @@
 #include "glview.h"
 #include "tracking_defines.h"
 
-#define NB_TEXTURE 6
+#define NB_TEXTURE 7
 #define BOX_SIZE 5.0f //the grid is always inside the box
 
 using namespace Leap;
@@ -21,7 +21,14 @@ class glWidget : public Glview, public Leap::Listener
     Q_OBJECT
 public:
     //typedef for textures management
-    typedef enum {CRATE, METAL, FOLDER, MUSIC, PICTURE, TEXT, NONE = -1} texId_t;
+    typedef enum {CRATE,
+                  METAL,
+                  FOLDER,
+                  MUSIC,
+                  PICTURE,
+                  TEXT,
+                  VIDEO,
+                  NONE = -1} texId_t;
 
     typedef enum {SINGLE, MULTIPLE} selectMode_t;
 
