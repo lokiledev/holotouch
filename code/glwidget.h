@@ -20,6 +20,8 @@ public:
     //typedef for textures management
     typedef enum {CRATE, METAL, FOLDER, MUSIC, PICTURE, TEXT, NONE = -1} texId_t;
 
+    typedef enum {SINGLE, MULTIPLE} selectMode_t;
+
     //state machine for clic like gestures
     typedef enum {OPEN,CLOSE} handState_t;
 
@@ -48,6 +50,7 @@ private:
     float spacing_;
     QDir fileExplorer_;
     handState_t handState_;
+    selectMode_t selectionMode_;
 
 public:
     glWidget(QWidget *parent = 0);

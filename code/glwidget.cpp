@@ -34,7 +34,8 @@ glWidget::glWidget(QWidget *parent) :
     Glview(60,parent),
     gridSize_(0),
     spacing_(DEFAULT_SPACING),
-    handState_(OPEN)
+    handState_(OPEN),
+    selectionMode_(SINGLE)
 {
     head_.x = 0.0;
     head_.y = 0.0;
@@ -130,7 +131,7 @@ void glWidget::onFrame(const Controller& controller) {
     // Get the most recent frame and report some basic information
     const Frame frame = controller.frame();
 
-    if (frame.hands().count() == 1)
+    if (frame.hands().count() >= 1)
     {
         Hand hand = frame.hands()[0];
         Vector pos = hand.palmPosition();
@@ -187,6 +188,15 @@ void glWidget::onFrame(const Controller& controller) {
         //compensate head position to align view and movement
         palmPos_.x -= head_.x;
         palmPos_.y -= head_.y;
+
+        selectionMode_ = SINGLE;
+        if (frame.hands().count() == 2)
+        {
+            Hand leftHand = frame.hands().leftmost();
+            float radius = leftHand.sphereRadius();
+            if ( radius <= SELECT_TRESHOLD )
+                selectionMode_ = MULTIPLE;
+        }
     }
 }
 
@@ -205,12 +215,9 @@ void glWidget::loadTexture(QString textureName, texId_t pId)
     glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
 }
 
-
-
 //Draw 6 squares and apply the texture on each: absolute coordinates for the center
 void glWidget::drawCube(texId_t PtextureId, float pCenterX, float pCenterY,float pCenterZ, float pSize)
 {
-
     float half = pSize/2;
     glBindTexture(GL_TEXTURE_2D, texture_[PtextureId]);
 
@@ -253,7 +260,7 @@ void glWidget::drawCube(texId_t PtextureId, float pCenterX, float pCenterY,float
     glEnd();
 }
 
-//Draw 6 squares and apply the texture on each: absolute coordinates for the center
+//Draw a tile of pSize, apply texture everywhere (to be enhanced)
 void glWidget::drawTile(texId_t PtextureId, float pCenterX, float pCenterY,float pCenterZ, float pSize)
 {
     float half = pSize/2;
@@ -576,15 +583,20 @@ void glWidget::slotSelect(void)
     {
         //change state of given item
         itemList_[item].selected_ = !itemList_[item].selected_;
+        if ( selectionMode_ == SINGLE )
+        {
+            for(int i = 0; i < itemList_.size(); i++)
+            {
+                if (i != item)
+                    itemList_[i].selected_ = false;
+            }
+        }
     }
     //hand out of grid ====> release everything
     else
     {
         for(int i = 0; i < itemList_.size(); i++)
-        {
-            if (i != item)
-                itemList_[i].selected_ = false;
-        }
+            itemList_[i].selected_ = false;
     }
 }
 
