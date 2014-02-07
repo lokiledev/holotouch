@@ -101,8 +101,16 @@ void mainwindow::keyPressEvent(QKeyEvent *keyEvent)
                 close();
             break;
         case Qt::Key_F:
-            menuBar()->hide();
-            showFullScreen();
+            if (isFullScreen())
+            {
+                showMaximized();
+                menuBar()->show();
+            }
+            else
+            {
+                menuBar()->hide();
+                showFullScreen();
+            }
             break;
         case Qt::Key_Z:
             glView_->slotMoveHead(1, 0.05);

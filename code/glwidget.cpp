@@ -4,11 +4,11 @@
 #include <GL/glu.h>
 #include <iostream>
 
-#define BOX_SIZE 5.0f //the grid is always inside the box
+#include <QMutexLocker>
 
 #define SCALE_FACTOR_XY 30.0f
-#define Z_OFFSET 50.0f
-#define Z_SCALE_FACTOR 30.0f
+#define Z_OFFSET 100.0f
+#define Z_SCALE_FACTOR 40.0f
 #define Y_OFFSET 200.0f //to scale leapmotion to our view
 
 #define SELECT_TRESHOLD 60.0f //hand hopening in mm
@@ -32,10 +32,13 @@ glWidget::item_t::item_t(const QString& pName, float pSize, texId_t pText)
 
 glWidget::glWidget(QWidget *parent) :
     Glview(60,parent),
+    boxSize_(BOX_SIZE),
     gridSize_(0),
     spacing_(DEFAULT_SPACING),
+    fileExplorer_(QDir::home()),
     handState_(OPEN),
-    selectionMode_(SINGLE)
+    selectionMode_(SINGLE),
+    currentAnim_(IDLE)
 {
     head_.x = 0.0;
     head_.y = 0.0;
@@ -45,7 +48,7 @@ glWidget::glWidget(QWidget *parent) :
     palmPos_.z = 5.0f;
     setCursor(Qt::BlankCursor);
     //generateCubes(CRATE,5*5*5);
-    loadFolder();
+    reloadFolder();
 }
 
 void glWidget::initializeGL()
@@ -99,7 +102,7 @@ void glWidget::paintGL()
 
     // Objects
     drawPalmPos();
-    computeGrid();
+    computeGrid(boxSize_);
     handleSelection();
     drawCurrentGrid();
 }
@@ -143,7 +146,7 @@ void glWidget::onFrame(const Controller& controller) {
         else
             handOpening = hand.sphereRadius();
 
-        //small state machine to detect closed/opend hand
+        //small state machine to detect closed/opened hand
         //use an hysteresis on hand sphere radius
         static int countClose = 0;
         static int countUp = 0;
@@ -413,7 +416,7 @@ void glWidget::generateCubes(texId_t pTexture, int pNbCubes)
  *the grid is always in a box of BOX_SIZE
  * so the more cubes, the more smaller it appears
  */
-void glWidget::computeGrid()
+void glWidget::computeGrid(float pBoxSize)
 {
     int nbItem = std::roundf(std::cbrt(itemList_.size()));
 
@@ -421,14 +424,14 @@ void glWidget::computeGrid()
     gridSize_ = nbItem;
 
     //distance between 2 cube's centers
-    spacing_ = BOX_SIZE/nbItem;
+    spacing_ = pBoxSize/nbItem;
 
     //apparent size of the cube
     float size = spacing_/2;
 
     //to center front face on (0,0,0)
     float offset = (nbItem-1)*spacing_/2;
-
+    QMutexLocker locker(&mutexList_);
     for (int z = 0; z <= nbItem; z++)
     {
         for (int y = 0; y <= nbItem; y++)
@@ -449,8 +452,7 @@ void glWidget::computeGrid()
     }
 }
 
-//update the view, draw cubes with absolute center coordinates
-//then center the camera
+//update the view, draw items with absolute center coordinates
 void glWidget::drawCurrentGrid()
 {
     QList<item_t>::iterator it;
@@ -504,14 +506,34 @@ void glWidget::handleSelection()
     }
 }
 
-//generate the view items from the files in a folder
-void glWidget::loadFolder(const QDir& pFolder)
+void glWidget::changeDirectory(const QString& pFolder)
 {
-    fileExplorer_= pFolder;
+    bool ok = false;
+    if ( pFolder == "..")
+    {
+        if( fileExplorer_.cdUp() )
+            ok = true;
+    }
+    else if ( fileExplorer_.cd(pFolder) )
+        ok = true;
+    if ( ok )
+        reloadFolder();
+}
+
+//generate the view items from the files in a folder
+void glWidget::reloadFolder()
+{
+    //protect access on the datalist
+    QMutexLocker locker(&mutexList_);
+
+    std::cout<<"loaded folder: "<<fileExplorer_.path().toStdString()<<std::endl;
+
     QFileInfoList fileList = fileExplorer_.entryInfoList();
-    QFileInfoList::iterator it;
-    itemList_.clear();
-    for( it = fileList.begin(); it != fileList.end(); it++)
+    QFileInfoList::const_iterator it;
+    QList<item_t> newList;
+
+    std::cout<<"reloading list\n";
+    for( it = fileList.cbegin(); it != fileList.cend(); it++)
     {
         //TODO: change texture according to file extension
 
@@ -539,8 +561,9 @@ void glWidget::loadFolder(const QDir& pFolder)
         }
         //create new cube, size doesn't matter, recomputed each time
         item_t item(it->fileName(), 1.0f, texture);
-        itemList_.append(item);
+        newList.append(item);
     }
+    itemList_ = newList;
 }
 
 //update the camera position
@@ -572,7 +595,6 @@ void glWidget::slotMoveHead(int pAxis, float pDelta)
     }
 }
 
-
 //called when select gesture is made
 void glWidget::slotSelect(void)
 {
@@ -580,16 +602,33 @@ void glWidget::slotSelect(void)
 
     //hand is on a single item
     if (item != -1 )
-    {
-        //change state of given item
-        itemList_[item].selected_ = !itemList_[item].selected_;
+    { 
         if ( selectionMode_ == SINGLE )
         {
-            for(int i = 0; i < itemList_.size(); i++)
+            //select item previously not selected
+            if ( !itemList_[item].selected_ )
             {
-                if (i != item)
-                    itemList_[i].selected_ = false;
+                itemList_[item].selected_ = true;
+                for( int i = 0; i < itemList_.size(); i++ )
+                {
+                    if (i != item)
+                        itemList_[i].selected_ = false;
+                }
             }
+            else //open previously selected item
+            {
+                if ( item < fileExplorer_.entryInfoList().size() &&
+                     fileExplorer_.entryInfoList().at(item).isDir() )
+                {
+                    //reset view to new folder
+                    changeDirectory(fileExplorer_.entryInfoList().at(item).fileName());
+                }
+                else
+                {
+                    //launch the file in external process.
+                }
+            }
+
         }
     }
     //hand out of grid ====> release everything

@@ -4,6 +4,7 @@
 #include <QImage>
 #include <QList>
 #include <QDir>
+#include <QMutex>
 
 #include "leapmotion/Leap.h"
 
@@ -11,6 +12,8 @@
 #include "tracking_defines.h"
 
 #define NB_TEXTURE 6
+#define BOX_SIZE 5.0f //the grid is always inside the box
+
 using namespace Leap;
 
 class glWidget : public Glview, public Leap::Listener
@@ -21,6 +24,8 @@ public:
     typedef enum {CRATE, METAL, FOLDER, MUSIC, PICTURE, TEXT, NONE = -1} texId_t;
 
     typedef enum {SINGLE, MULTIPLE} selectMode_t;
+
+    typedef enum {IDLE, EXPAND, COLLAPSE} globalAnimation_t;
 
     //state machine for clic like gestures
     typedef enum {OPEN,CLOSE} handState_t;
@@ -46,11 +51,15 @@ private:
     head_t head_;
     Leap::Vector palmPos_;
     QList<item_t> itemList_;
+    float boxSize_;
     int gridSize_;
     float spacing_;
     QDir fileExplorer_;
     handState_t handState_;
     selectMode_t selectionMode_;
+    globalAnimation_t currentAnim_;
+
+    mutable QMutex mutexList_;
 
 public:
     glWidget(QWidget *parent = 0);
@@ -93,11 +102,12 @@ public:
                         int pW);
     void drawPalmPos();
     void drawCurrentGrid();
-    void loadFolder(const QDir& pFolder = QDir::home());
+    void reloadFolder();
+    void changeDirectory(const QString& pFolder);
 
 private:
     void generateCubes(texId_t pTexture, int pNbCubes);
-    void computeGrid();
+    void computeGrid(float pPboxSize = BOX_SIZE);
     int closestItem(float pTreshold);
     void handleSelection();
 
@@ -107,6 +117,7 @@ public slots:
     void slotNewHead(head_t pPos);
     void slotMoveHead(int pAxis, float pDelta);
     void slotPalmPos(Leap::Vector pPos);
+
 private slots:
     void slotSelect(void);
 };
