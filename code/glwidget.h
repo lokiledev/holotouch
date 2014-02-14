@@ -67,17 +67,11 @@ private:
 public:
     GlWidget(QWidget *parent = 0);
     ~GlWidget();
+
     //opengl functions
     void initializeGL();
     void resizeGL(int width, int height);
     void paintGL();
-
-    //leap listener functions
-    void onInit(const Controller&);
-    void onConnect(const Controller&);
-    void onDisconnect(const Controller&);
-    void onExit(const Controller&);
-    void onFrame(const Controller&);
 
     void loadTexture(QString textureName, texId_t pId);
     void drawCube(texId_t PtextureId,
@@ -123,7 +117,7 @@ public slots:
     void slotPalmPos(Leap::Vector pPos);
 
 private slots:
-    void slotSelect(void);
+    void slotSelect(int pItem = -1);
 };
 
 #endif // GLWIDGET_H

@@ -10,8 +10,6 @@
 
 #define DEFAULT_SPACING 2.0f
 
-#define HOLD_TIME 5 //nb of frame with hand closed
-
 GlWidget::item_t::item_t(const QString& pName, float pSize, texId_t pText)
     :x_(0),
      y_(0),
@@ -475,13 +473,34 @@ void GlWidget::reloadFolder()
 
 void GlWidget::customEvent(QEvent* pEvent)
 {
-    if (pEvent->type() == HandEvent::OpenEvent )
+    HandEvent* event = dynamic_cast<HandEvent*>(pEvent);
+    if ( event )
     {
-        HandEvent* event = dynamic_cast<HandEvent*>(pEvent);
-         palmPos_ = event->pos();
+        //always get the new pos of the hand
+        palmPos_ = event->pos();
+
+        //detect if hand is near an item
+        int item = closestItem(spacing_);
+        leapListener_.setItem(item);
+
+        //handle type of event
+        switch (event->type() )
+        {
+        case HandEvent::Opened:
+            break;
+        case HandEvent::Closed:
+            break;
+        case HandEvent::Clicked:
+            item = event->item();
+            slotSelect(item);
+            break;
+        case HandEvent::DoubleClicked:
+            break;
+        default:
+            break;
+        }
     }
 }
-
 
 //update the camera position
 void GlWidget::slotNewHead(head_t pPos)
@@ -513,31 +532,30 @@ void GlWidget::slotMoveHead(int pAxis, float pDelta)
 }
 
 //called when select gesture is made
-void GlWidget::slotSelect(void)
+void GlWidget::slotSelect(int pItem)
 {
     bool selectSingle = true;
-    int item = closestItem(spacing_);
 
     //hand is on a single item
-    if (item != -1 )
+    if (pItem!= -1 )
     { 
         if ( selectSingle )
         {
-            //select item previously not selected
-            if ( !itemList_[item].selected_ )
+            //select pItempreviously not selected
+            if ( !itemList_[pItem].selected_ )
             {
-                itemList_[item].selected_ = true;
+                itemList_[pItem].selected_ = true;
                 for( int i = 0; i < itemList_.size(); i++ )
                 {
-                    if (i != item)
+                    if (i != pItem)
                         itemList_[i].selected_ = false;
                 }
             }
             else //open previously selected item
             {
-                if ( item < fileExplorer_.entryInfoList().size() )
+                if ( pItem< fileExplorer_.entryInfoList().size() )
                 {
-                    QFileInfo info =  fileExplorer_.entryInfoList().at(item);
+                    QFileInfo info =  fileExplorer_.entryInfoList().at(pItem);
                     if ( info.isDir() )
                     {
                         //reset view to new folder
@@ -550,11 +568,10 @@ void GlWidget::slotSelect(void)
                     }
                 }
             }
-
         }
         else
         {
-            itemList_[item].selected_ = !itemList_[item].selected_ ;
+            itemList_[pItem].selected_ = !itemList_[pItem].selected_ ;
         }
     }
     //hand out of grid ====> release everything

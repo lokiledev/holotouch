@@ -9,7 +9,6 @@ HandEvent::HandEvent(QEvent::Type pType,
       hand_(pId),
       itemSelected_(pSelect)
 {
-    registerEventType(pType);
 }
 
 Vector HandEvent::pos()

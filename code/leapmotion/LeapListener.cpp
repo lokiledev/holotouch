@@ -13,11 +13,14 @@
 #define SELECT_TRESHOLD 60.0f //hand opening in mm
 #define RELEASE_TRESHOLD 80.0f //hand opening in mm
 
+#define HOLD_TIME 10 //nb of frame with hand closed
+
 LeapListener::LeapListener()
     : rightHand_(-1),
       leftHand_(-1),
       trackedItem_(-1),
-      trackPrevious_(false)
+      trackPrevious_(false),
+      handState_(OPEN)
 {
 }
 
@@ -57,7 +60,7 @@ void LeapListener::onFrame(const Controller& controller)
         Hand hand = frame.hands()[0];
         Vector pos = hand.palmPosition();
 
-        /*
+
         //closed hand hard to detect
         // closed = select cube
         float handOpening = 0;
@@ -70,6 +73,17 @@ void LeapListener::onFrame(const Controller& controller)
         //use an hysteresis on hand sphere radius
         static int countClose = 0;
         static int countUp = 0;
+        static bool clicked = false;
+        /* If hand is not near the same item, reset counters
+         */
+        if ( !trackPrevious_ )
+        {
+            countClose = 0;
+            countUp = 0;
+            trackPrevious_ = true;
+        }
+
+        //State machine to detect click
         switch(handState_)
         {
         case OPEN:
@@ -93,7 +107,7 @@ void LeapListener::onFrame(const Controller& controller)
                 {
                     handState_ = OPEN;
                     countClose = 0;
-                    slotSelect();
+                    clicked = true;
                 }
             }
             else
@@ -102,7 +116,7 @@ void LeapListener::onFrame(const Controller& controller)
         default:
             break;
         }
-        */
+
 
         //adjust to our view coordinates
         rPos_.x = pos.x/SCALE_FACTOR_XY;
@@ -120,8 +134,15 @@ void LeapListener::onFrame(const Controller& controller)
 
         if ( receiver_ )
         {
-            HandEvent event(HandEvent::OpenEvent, rPos_, HandEvent::RIGHT, trackedItem_);
-            QApplication::sendEvent(receiver_, &event);
+            HandEvent* event = 0;
+            if ( clicked )
+            {
+                event = new HandEvent(HandEvent::Clicked, rPos_, HandEvent::RIGHT, trackedItem_);
+                clicked = false;
+            }
+            else
+                event = new HandEvent(HandEvent::Opened, rPos_, HandEvent::RIGHT, trackedItem_);
+            QApplication::sendEvent(receiver_, event);
         }
     }
 }
@@ -133,7 +154,7 @@ void LeapListener::setReceiver(QObject* pObject)
 
 void LeapListener::setItem(int pNewItem)
 {
-    if (!trackedItem_ == pNewItem)
+    if ( !(trackedItem_ == pNewItem) )
     {
         trackPrevious_ = false;
         trackedItem_ = pNewItem;

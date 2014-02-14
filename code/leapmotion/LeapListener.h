@@ -13,7 +13,7 @@ class LeapListener: public QObject, public Leap::Listener
 
 public:
     //state machine for clic like gestures
-    typedef enum {OPENED,CLOSED} handOpening_t;
+    typedef enum {OPEN, CLOSE} handOpening_t;
 
      typedef enum {SINGLE, MULTIPLE} selectMode_t;
 
