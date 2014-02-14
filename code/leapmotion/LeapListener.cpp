@@ -123,13 +123,13 @@ void LeapListener::onFrame(const Controller& controller)
         rPos_.y = (pos.y - Y_OFFSET)/SCALE_FACTOR_XY;
         rPos_.z = (pos.z - Z_OFFSET)/Z_SCALE_FACTOR;
 
-        selectionMode_ = SINGLE;
+        selectionMode_ = HandEvent::SINGLE;
         if (frame.hands().count() == 2)
         {
             Hand leftHand = frame.hands().leftmost();
             float radius = leftHand.sphereRadius();
             if ( radius <= SELECT_TRESHOLD )
-                selectionMode_ = MULTIPLE;
+                selectionMode_ = HandEvent::MULTIPLE;
         }
 
         if ( receiver_ )
@@ -137,11 +137,13 @@ void LeapListener::onFrame(const Controller& controller)
             HandEvent* event = 0;
             if ( clicked )
             {
-                event = new HandEvent(HandEvent::Clicked, rPos_, HandEvent::RIGHT, trackedItem_);
+                event = new HandEvent(HandEvent::Clicked, rPos_, trackedItem_, selectionMode_);
                 clicked = false;
             }
-            else
-                event = new HandEvent(HandEvent::Opened, rPos_, HandEvent::RIGHT, trackedItem_);
+            else if ( handState_ == CLOSE )
+                event = new HandEvent(HandEvent::Closed, rPos_, trackedItem_);
+            else if ( handState_ == OPEN )
+                event = new HandEvent(HandEvent::Opened, rPos_, trackedItem_);
             QApplication::sendEvent(receiver_, event);
         }
     }

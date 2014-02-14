@@ -3,11 +3,12 @@
 //types must be greater than User
 HandEvent::HandEvent(QEvent::Type pType,
           Vector pPos,
-          HandId_t pId, int pSelect)
+          int pSelect,
+          Selection_t pSelectMode)
     : QEvent(pType),
       pos_(pPos),
-      hand_(pId),
-      itemSelected_(pSelect)
+      itemSelected_(pSelect),
+      selection_(pSelectMode)
 {
 }
 
@@ -16,12 +17,12 @@ Vector HandEvent::pos()
     return pos_;
 }
 
-HandEvent::HandId_t HandEvent::hand()
-{
-    return hand_;
-}
-
 int HandEvent::item()
 {
     return itemSelected_;
+}
+
+HandEvent::Selection_t HandEvent::selectMode()
+{
+    return selection_;
 }

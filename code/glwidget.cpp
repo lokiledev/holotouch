@@ -25,6 +25,7 @@ GlWidget::item_t::item_t(const QString& pName, float pSize, texId_t pText)
 
 GlWidget::GlWidget(QWidget *parent) :
     Glview(60,parent),
+    selectionMode_(HandEvent::SINGLE),
     boxSize_(BOX_SIZE),
     gridSize_(0),
     spacing_(DEFAULT_SPACING),
@@ -492,6 +493,7 @@ void GlWidget::customEvent(QEvent* pEvent)
             break;
         case HandEvent::Clicked:
             item = event->item();
+            selectionMode_ = event->selectMode();
             slotSelect(item);
             break;
         case HandEvent::DoubleClicked:
@@ -534,12 +536,10 @@ void GlWidget::slotMoveHead(int pAxis, float pDelta)
 //called when select gesture is made
 void GlWidget::slotSelect(int pItem)
 {
-    bool selectSingle = true;
-
     //hand is on a single item
     if (pItem!= -1 )
     { 
-        if ( selectSingle )
+        if ( selectionMode_ == HandEvent::SINGLE )
         {
             //select pItempreviously not selected
             if ( !itemList_[pItem].selected_ )
@@ -569,7 +569,7 @@ void GlWidget::slotSelect(int pItem)
                 }
             }
         }
-        else
+        else if (selectionMode_ == HandEvent::MULTIPLE )
         {
             itemList_[pItem].selected_ = !itemList_[pItem].selected_ ;
         }

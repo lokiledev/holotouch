@@ -4,6 +4,7 @@
 #include <QObject>
 
 #include "leapmotion/Leap.h"
+#include "leapmotion/HandEvent.h"
 
 using namespace Leap;
 
@@ -14,8 +15,6 @@ class LeapListener: public QObject, public Leap::Listener
 public:
     //state machine for clic like gestures
     typedef enum {OPEN, CLOSE} handOpening_t;
-
-     typedef enum {SINGLE, MULTIPLE} selectMode_t;
 
 private:
     // remember the id of item in leap frames
@@ -30,7 +29,7 @@ private:
     //right hand palm position
     Leap::Vector rPos_;
 
-    selectMode_t selectionMode_;
+    HandEvent::Selection_t  selectionMode_;
     QObject* receiver_;
 
 public:

@@ -52,13 +52,16 @@ private:
     Leap::Controller controller_;
 
     GLuint texture_[NB_TEXTURE];
+
     //head positions in cm relative to screen center.
     head_t head_;
     Leap::Vector palmPos_;
     QList<item_t> itemList_;
+    HandEvent::Selection_t selectionMode_;
     float boxSize_;
     int gridSize_;
     float spacing_;
+
     QDir fileExplorer_;
     globalAnimation_t currentAnim_;
 

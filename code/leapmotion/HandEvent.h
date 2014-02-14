@@ -6,6 +6,7 @@
 
 using namespace Leap;
 
+//Custom events must be > QEvent::User (1000)
 #define EVENT_OPEN 1002
 #define EVENT_CLOSE 1003
 #define EVENT_CLICK 1004
@@ -16,8 +17,7 @@ class HandEvent: public QEvent
 {
 public:
 
-    // distinguish left or right hand
-    typedef enum {RIGHT, LEFT, ANY} HandId_t;
+    typedef enum {SINGLE, MULTIPLE} Selection_t;
 
     //create naming for our custom events
     static const QEvent::Type Opened = static_cast<QEvent::Type>(EVENT_OPEN);
@@ -26,18 +26,19 @@ public:
     static const QEvent::Type DoubleClicked = static_cast<QEvent::Type>(EVENT_DOUBLE_CLICK);
 
 private:
-    Vector pos_; // palm position
-    HandId_t hand_ ;
+    Leap::Vector pos_; // palm position
     int itemSelected_;
+    Selection_t selection_;
 
 public:
     //types must be greater than User
     HandEvent(QEvent::Type pType = QEvent::User,
-              Vector pPos = Vector(),
-              HandId_t pId = ANY, int pSelect = -1);
-    Vector pos();
-    HandId_t hand();
+              Leap::Vector pPos = Leap::Vector(),
+              int pSelect = -1,
+              Selection_t pSelectMode = SINGLE);
+    Leap::Vector pos();
     int item();
+    HandEvent::Selection_t selectMode();
 };
 
 
