@@ -16,6 +16,7 @@ GlWidget::item_t::item_t(const QString& pName, float pSize, texId_t pText)
      z_(0),
      size_(pSize),
      sizeOffset_(0),
+     yOffset_(0),
      texture_(pText),
      selected_(false),
      drawn_(false),
@@ -105,6 +106,7 @@ void GlWidget::paintGL()
     computeWaveGrid();
     //computeGrid(boxSize_);
     handleSelection();
+    handleHovering();
     drawCurrentGrid();
 }
 
@@ -218,7 +220,7 @@ void GlWidget::drawTile(const item_t& pItem)
 {
     drawTile(pItem.texture_,
              pItem.x_,
-             pItem.y_,
+             pItem.y_ + pItem.yOffset_,
              pItem.z_,
              pItem.size_ + pItem.sizeOffset_);
     if (pItem.fileName_.size() > 0)
@@ -338,15 +340,27 @@ void GlWidget::computeWaveGrid(int pItemPerLine, float pZOffset)
       it->x_ = col*spacing_ - offset;
       it->y_ = -boxSize_/3.0;
       it->z_ = -row*spacing_ + pZOffset; //along negative z
-      if (abs(palmPos_.z - it->z_) <= spacing_/4)
-          it->y_ = 0;
-
       col += 1;
       if ( col >= pItemPerLine )
       {
           row++;
           col = 0;
       }
+    }
+}
+
+void GlWidget::handleHovering()
+{
+    QList<item_t>::iterator it;
+    for (it = itemList_.begin(); it != itemList_.end(); it++)
+    {
+        if (abs(palmPos_.z - it->z_) <= spacing_/2.0f)
+        {
+            if (it->yOffset_ < boxSize_/3.0)
+                it->yOffset_ += boxSize_/30.0;
+        }
+        else if (it->yOffset_ > 0.0f)
+            it->yOffset_ -= boxSize_/30.0f;
     }
 }
 

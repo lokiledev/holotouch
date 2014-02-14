@@ -39,6 +39,7 @@ public:
         float z_;
         float size_;
         float sizeOffset_;
+        float yOffset_;
         texId_t texture_;
         bool selected_;
         bool drawn_;
@@ -114,6 +115,7 @@ private:
     void computeGrid(float pPboxSize = BOX_SIZE);
     int closestItem(float pTreshold);
     void handleSelection();
+    void handleHovering();
 
 signals:
 
