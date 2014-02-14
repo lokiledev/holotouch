@@ -7,7 +7,7 @@
 
 using namespace Leap;
 
-class LeapListener: public Leap::Listener
+class LeapListener: public QObject, public Leap::Listener
 {
     Q_OBJECT
 

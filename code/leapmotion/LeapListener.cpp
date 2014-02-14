@@ -21,29 +21,34 @@ LeapListener::LeapListener()
 {
 }
 
-void LeapListener::onInit(const Controller& controller) {
+void LeapListener::onInit(const Controller& controller)
+{
     Q_UNUSED(controller);
      qDebug() << "Initialized";
 }
 
-void LeapListener::onConnect(const Controller& controller) {
+void LeapListener::onConnect(const Controller& controller)
+{
     qDebug() << "Connected";
     controller.enableGesture(Gesture::TYPE_CIRCLE);
     controller.enableGesture(Gesture::TYPE_SWIPE);
 }
 
-void LeapListener::onDisconnect(const Controller& controller) {
+void LeapListener::onDisconnect(const Controller& controller)
+{
     //Note: not dispatched when running in a debugger.
     Q_UNUSED(controller);
     qDebug() << "Disconnected";
 }
 
-void LeapListener::onExit(const Controller& controller) {
+void LeapListener::onExit(const Controller& controller)
+{
     Q_UNUSED(controller);
     qDebug() << "Exited";
 }
 
-void LeapListener::onFrame(const Controller& controller) {
+void LeapListener::onFrame(const Controller& controller)
+{
     // Get the most recent frame and report some basic information
     const Frame frame = controller.frame();
 

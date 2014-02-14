@@ -6,18 +6,13 @@
 
 #include <QMutexLocker>
 
-#define SCALE_FACTOR_XY 30.0f
-#define Z_OFFSET 100.0f
-#define Z_SCALE_FACTOR 40.0f
-#define Y_OFFSET 200.0f //to scale leapmotion to our view
+#include "leapmotion/HandEvent.h"
 
-#define SELECT_TRESHOLD 60.0f //hand hopening in mm
-#define RELEASE_TRESHOLD 80.0f //hand opening in mm
 #define DEFAULT_SPACING 2.0f
 
 #define HOLD_TIME 5 //nb of frame with hand closed
 
-glWidget::item_t::item_t(const QString& pName, float pSize, texId_t pText)
+GlWidget::item_t::item_t(const QString& pName, float pSize, texId_t pText)
     :x_(0),
      y_(0),
      z_(0),
@@ -30,16 +25,16 @@ glWidget::item_t::item_t(const QString& pName, float pSize, texId_t pText)
 {
 }
 
-glWidget::glWidget(QWidget *parent) :
+GlWidget::GlWidget(QWidget *parent) :
     Glview(60,parent),
     boxSize_(BOX_SIZE),
     gridSize_(0),
     spacing_(DEFAULT_SPACING),
     fileExplorer_(QDir::home()),
-    handState_(OPEN),
-    selectionMode_(SINGLE),
     currentAnim_(IDLE)
 {
+    leapListener_.setReceiver(this);
+    controller_.addListener(leapListener_);
     head_.x = 0.0;
     head_.y = 0.0;
     head_.z = 5.0;
@@ -51,7 +46,12 @@ glWidget::glWidget(QWidget *parent) :
     reloadFolder();
 }
 
-void glWidget::initializeGL()
+GlWidget::~GlWidget()
+{
+    controller_.removeListener(leapListener_);
+}
+
+void GlWidget::initializeGL()
 {
     loadTexture("../code/ressources/box.png", CRATE);
     loadTexture("../code/ressources/metal.jpg", METAL);
@@ -71,7 +71,7 @@ void glWidget::initializeGL()
     glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
 }
 
-void glWidget::resizeGL(int width, int height)
+void GlWidget::resizeGL(int width, int height)
 {
     if(height == 0)
         height = 1;
@@ -83,7 +83,7 @@ void glWidget::resizeGL(int width, int height)
     glLoadIdentity();
 }
 
-void glWidget::paintGL()
+void GlWidget::paintGL()
 {
     // ============================
     // Render Scene
@@ -108,105 +108,9 @@ void glWidget::paintGL()
     drawCurrentGrid();
 }
 
-void glWidget::onInit(const Controller& controller) {
-    Q_UNUSED(controller);
-    std::cout << "Initialized" << std::endl;
-}
-
-void glWidget::onConnect(const Controller& controller) {
-    std::cout << "Connected" << std::endl;
-    controller.enableGesture(Gesture::TYPE_CIRCLE);
-    controller.enableGesture(Gesture::TYPE_SCREEN_TAP);
-    controller.enableGesture(Gesture::TYPE_SWIPE);
-}
-
-void glWidget::onDisconnect(const Controller& controller) {
-    //Note: not dispatched when running in a debugger.
-    Q_UNUSED(controller);
-    std::cout << "Disconnected" << std::endl;
-}
-
-void glWidget::onExit(const Controller& controller) {
-    Q_UNUSED(controller);
-    std::cout << "Exited" << std::endl;
-}
-
-void glWidget::onFrame(const Controller& controller) {
-    // Get the most recent frame and report some basic information
-    const Frame frame = controller.frame();
-
-    if (frame.hands().count() >= 1)
-    {
-        Hand hand = frame.hands()[0];
-        Vector pos = hand.palmPosition();
-        //closed hand hard to detect
-        // closed = select cube
-        float handOpening = 0;
-        if ( hand.fingers().isEmpty() )
-            handOpening = 0;
-        else
-            handOpening = hand.sphereRadius();
-
-        //small state machine to detect closed/opened hand
-        //use an hysteresis on hand sphere radius
-        static int countClose = 0;
-        static int countUp = 0;
-        switch(handState_)
-        {
-        case OPEN:
-            if (handOpening <= SELECT_TRESHOLD)
-            {
-                countUp++;
-                if ( countUp >= HOLD_TIME )
-                {
-                    handState_ = CLOSE;
-                    countUp = 0;
-                }
-            }
-            else
-                countUp = 0;
-            break;
-        case CLOSE:
-            if ( handOpening >= RELEASE_TRESHOLD )
-            {
-                countClose++;
-                if ( countClose >= HOLD_TIME )
-                {
-                    handState_ = OPEN;
-                    countClose = 0;
-                    slotSelect();
-                }
-            }
-            else
-                countClose = 0;
-            break;
-        default:
-            break;
-        }
-
-        //adjust to our view coordinates
-        palmPos_.x = pos.x/SCALE_FACTOR_XY;
-        palmPos_.y = (pos.y - Y_OFFSET)/SCALE_FACTOR_XY;
-        palmPos_.z = (pos.z - Z_OFFSET)/Z_SCALE_FACTOR;
-
-        //compensate head position to align view and movement
-        palmPos_.x -= head_.x;
-        palmPos_.y -= head_.y;
-
-        selectionMode_ = SINGLE;
-        if (frame.hands().count() == 2)
-        {
-            Hand leftHand = frame.hands().leftmost();
-            float radius = leftHand.sphereRadius();
-            if ( radius <= SELECT_TRESHOLD )
-                selectionMode_ = MULTIPLE;
-        }
-    }
-}
-
 //helper function, loads a texture and assign it to an enum value
 //to help retrieve it later
-void glWidget::loadTexture(QString textureName, texId_t pId)
+void GlWidget::loadTexture(QString textureName, texId_t pId)
 {
     QImage qim_Texture;
     QImage qim_TempTexture;
@@ -220,7 +124,7 @@ void glWidget::loadTexture(QString textureName, texId_t pId)
 }
 
 //Draw 6 squares and apply the texture on each: absolute coordinates for the center
-void glWidget::drawCube(texId_t PtextureId, float pCenterX, float pCenterY,float pCenterZ, float pSize)
+void GlWidget::drawCube(texId_t PtextureId, float pCenterX, float pCenterY,float pCenterZ, float pSize)
 {
     float half = pSize/2;
     glBindTexture(GL_TEXTURE_2D, texture_[PtextureId]);
@@ -265,7 +169,7 @@ void glWidget::drawCube(texId_t PtextureId, float pCenterX, float pCenterY,float
 }
 
 //Draw a tile of pSize, apply texture everywhere (to be enhanced)
-void glWidget::drawTile(texId_t PtextureId, float pCenterX, float pCenterY,float pCenterZ, float pSize)
+void GlWidget::drawTile(texId_t PtextureId, float pCenterX, float pCenterY,float pCenterZ, float pSize)
 {
     float half = pSize/2;
     float thickness = pSize/8;
@@ -310,7 +214,7 @@ void glWidget::drawTile(texId_t PtextureId, float pCenterX, float pCenterY,float
     glEnd();
 }
 
-void glWidget::drawTile(const item_t& pItem)
+void GlWidget::drawTile(const item_t& pItem)
 {
     drawTile(pItem.texture_,
              pItem.x_,
@@ -329,7 +233,7 @@ void glWidget::drawTile(const item_t& pItem)
 }
 
 //Draw a 2D grid composed of L*H cubes of size CubeZise spaced by pSpacing
-void glWidget::drawCube2DGrid(texId_t pTexture,float pSpacing, float pCubeSize, int pL,int pH)
+void GlWidget::drawCube2DGrid(texId_t pTexture,float pSpacing, float pCubeSize, int pL,int pH)
 {
     glTranslatef(-(pSpacing+pCubeSize)*(pL-1)/2,(pSpacing+pCubeSize)*(pH-1)/2,0);
     for(int i = 0; i < pH; ++i)
@@ -346,7 +250,7 @@ void glWidget::drawCube2DGrid(texId_t pTexture,float pSpacing, float pCubeSize, 
 }
 
 //Draw a 3D grid composed of L*H cubes of size CubeZise spaced by pSpacing
-void glWidget::drawCube3DGrid(texId_t pTexture,
+void GlWidget::drawCube3DGrid(texId_t pTexture,
                               float pSpacing,
                               float pCubeSize,
                               int pL,
@@ -374,7 +278,7 @@ void glWidget::drawCube3DGrid(texId_t pTexture,
 }
 
 //overloaded function for ease of use
-void glWidget::drawCube(const item_t& pCube)
+void GlWidget::drawCube(const item_t& pCube)
 {
     drawCube(pCube.texture_,
              pCube.x_,
@@ -393,7 +297,7 @@ void glWidget::drawCube(const item_t& pCube)
 }
 
 //draw a cube where the middle of the palm is
-void glWidget::drawPalmPos()
+void GlWidget::drawPalmPos()
 {
     //normalize leap coordinates to our box size
    drawCube(METAL,
@@ -403,7 +307,7 @@ void glWidget::drawPalmPos()
 }
 
 //init the view with a certain amount of cubes
-void glWidget::generateCubes(texId_t pTexture, int pNbCubes)
+void GlWidget::generateCubes(texId_t pTexture, int pNbCubes)
 {
     itemList_.clear();
     for (int i=0; i<pNbCubes; ++i)
@@ -417,7 +321,7 @@ void glWidget::generateCubes(texId_t pTexture, int pNbCubes)
  *the grid is always in a box of BOX_SIZE
  * so the more cubes, the more smaller it appears
  */
-void glWidget::computeGrid(float pBoxSize)
+void GlWidget::computeGrid(float pBoxSize)
 {
     int nbItem = std::roundf(std::cbrt(itemList_.size()));
 
@@ -454,7 +358,7 @@ void glWidget::computeGrid(float pBoxSize)
 }
 
 //update the view, draw items with absolute center coordinates
-void glWidget::drawCurrentGrid()
+void GlWidget::drawCurrentGrid()
 {
     QList<item_t>::iterator it;
     for (it = itemList_.begin(); it != itemList_.end(); it++)
@@ -463,7 +367,7 @@ void glWidget::drawCurrentGrid()
 }
 
 //find the closest cube from the palm center
-int glWidget::closestItem(float pTreshold)
+int GlWidget::closestItem(float pTreshold)
 {
     float minDist = 1000.0f;
     QList<item_t>::iterator it;
@@ -486,7 +390,7 @@ int glWidget::closestItem(float pTreshold)
  *perform growing cube animation on each
  *selected cube
  */
-void glWidget::handleSelection()
+void GlWidget::handleSelection()
 {
     //growing animation on selected cubes
     for (QList<item_t>::iterator it = itemList_.begin(); it != itemList_.end(); it++)
@@ -507,7 +411,7 @@ void glWidget::handleSelection()
     }
 }
 
-void glWidget::changeDirectory(const QString& pFolder)
+void GlWidget::changeDirectory(const QString& pFolder)
 {
     bool ok = false;
     if ( pFolder == "..")
@@ -522,7 +426,7 @@ void glWidget::changeDirectory(const QString& pFolder)
 }
 
 //generate the view items from the files in a folder
-void glWidget::reloadFolder()
+void GlWidget::reloadFolder()
 {
     //protect access on the datalist
     QMutexLocker locker(&mutexList_);
@@ -569,8 +473,18 @@ void glWidget::reloadFolder()
     itemList_ = newList;
 }
 
+void GlWidget::customEvent(QEvent* pEvent)
+{
+    if (pEvent->type() == HandEvent::OpenEvent )
+    {
+        HandEvent* event = dynamic_cast<HandEvent*>(pEvent);
+         palmPos_ = event->pos();
+    }
+}
+
+
 //update the camera position
-void glWidget::slotNewHead(head_t pPos)
+void GlWidget::slotNewHead(head_t pPos)
 {
     /*We inverse axes to compensate head position relative
      * to the cube.
@@ -581,7 +495,7 @@ void glWidget::slotNewHead(head_t pPos)
 }
 
 //move slightly the camera, via keyboard commands for example
-void glWidget::slotMoveHead(int pAxis, float pDelta)
+void GlWidget::slotMoveHead(int pAxis, float pDelta)
 {
     switch(pAxis)
     {
@@ -599,14 +513,15 @@ void glWidget::slotMoveHead(int pAxis, float pDelta)
 }
 
 //called when select gesture is made
-void glWidget::slotSelect(void)
+void GlWidget::slotSelect(void)
 {
+    bool selectSingle = true;
     int item = closestItem(spacing_);
 
     //hand is on a single item
     if (item != -1 )
     { 
-        if ( selectionMode_ == SINGLE )
+        if ( selectSingle )
         {
             //select item previously not selected
             if ( !itemList_[item].selected_ )
@@ -637,7 +552,7 @@ void glWidget::slotSelect(void)
             }
 
         }
-        else if (selectionMode_ == MULTIPLE)
+        else
         {
             itemList_[item].selected_ = !itemList_[item].selected_ ;
         }
@@ -651,7 +566,7 @@ void glWidget::slotSelect(void)
 }
 
 //Not used
-void glWidget::slotPalmPos(Vector pPos)
+void GlWidget::slotPalmPos(Vector pPos)
 {
     palmPos_ = pPos;
 }

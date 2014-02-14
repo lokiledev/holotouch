@@ -19,8 +19,6 @@ mainwindow::mainwindow(QWidget *parent) :
 
  mainwindow::~mainwindow()
  {
-     //stop tracking
-    controller_.removeListener(*glView_);
  }
 
 void mainwindow::init(void)
@@ -41,7 +39,7 @@ void mainwindow::init(void)
     webcamView_->setScaledContents(true);
     timer_ = new QTimer(this);
 
-    glView_ = new glWidget(this);
+    glView_ = new GlWidget(this);
     hLayout->addWidget(glView_);
 
     menu_ = menuBar()->addMenu("&Display");
@@ -62,9 +60,6 @@ void mainwindow::init(void)
     setCentralWidget(centerWidget);
 
     connect(&tracker_, SIGNAL(signalNewHeadPos(head_t)), glView_, SLOT(slotNewHead(head_t)));
-
-    controller_.addListener(*glView_);
-    //timer_->start(DELAY_FPS);
 }
 
 void mainwindow::slotStart()

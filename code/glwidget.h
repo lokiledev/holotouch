@@ -6,7 +6,7 @@
 #include <QDir>
 #include <QMutex>
 
-#include "leapmotion/Leap.h"
+#include "leapmotion/LeapListener.h"
 
 #include "glview.h"
 #include "tracking_defines.h"
@@ -16,7 +16,7 @@
 
 using namespace Leap;
 
-class glWidget : public Glview, public Leap::Listener
+class GlWidget : public Glview
 {
     Q_OBJECT
 public:
@@ -30,12 +30,7 @@ public:
                   VIDEO,
                   NONE = -1} texId_t;
 
-    typedef enum {SINGLE, MULTIPLE} selectMode_t;
-
     typedef enum {IDLE, EXPAND, COLLAPSE} globalAnimation_t;
-
-    //state machine for clic like gestures
-    typedef enum {OPEN,CLOSE} handState_t;
 
     //simple way of describing a cube/item
     struct item_t {
@@ -53,6 +48,9 @@ public:
     };
 
 private:
+    LeapListener leapListener_;
+    Leap::Controller controller_;
+
     GLuint texture_[NB_TEXTURE];
     //head positions in cm relative to screen center.
     head_t head_;
@@ -62,15 +60,13 @@ private:
     int gridSize_;
     float spacing_;
     QDir fileExplorer_;
-    handState_t handState_;
-    selectMode_t selectionMode_;
     globalAnimation_t currentAnim_;
 
     mutable QMutex mutexList_;
 
 public:
-    glWidget(QWidget *parent = 0);
-
+    GlWidget(QWidget *parent = 0);
+    ~GlWidget();
     //opengl functions
     void initializeGL();
     void resizeGL(int width, int height);
@@ -111,6 +107,7 @@ public:
     void drawCurrentGrid();
     void reloadFolder();
     void changeDirectory(const QString& pFolder);
+    void customEvent(QEvent* pEvent);
 
 private:
     void generateCubes(texId_t pTexture, int pNbCubes);

@@ -2,7 +2,6 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
-#include "leapmotion/Leap.h"
 
 #include "glwidget.h"
 #include "head_tracking/facetrack.h"
@@ -24,9 +23,7 @@ private:
     QPixmap imgWebcam_;
     QTimer* timer_;
     QMenu* menu_;
-    glWidget* glView_;
-    Controller controller_;
-   // LeapListener listener_;
+    GlWidget* glView_;
 
 public:
     mainwindow(QWidget *parent = 0);
