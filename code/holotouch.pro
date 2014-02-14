@@ -42,7 +42,9 @@ SOURCES += main.cpp \
     head_tracking/facetrack.cpp \
     mainwindow.cpp \
     glview.cpp \
-    glwidget.cpp
+    glwidget.cpp \
+    leapmotion/LeapListener.cpp \
+    leapmotion/HandEvent.cpp
 
 HEADERS += \
     mainwindow.h \
@@ -50,4 +52,6 @@ HEADERS += \
     glview.h \
     glwidget.h \
     tracking_defines.h \
-    leapmotion/Leap.h
+    leapmotion/Leap.h \
+    leapmotion/LeapListener.h \
+    leapmotion/HandEvent.h
