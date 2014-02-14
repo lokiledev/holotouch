@@ -102,7 +102,8 @@ void GlWidget::paintGL()
 
     // Objects
     drawPalmPos();
-    computeGrid(boxSize_);
+    computeWaveGrid();
+    //computeGrid(boxSize_);
     handleSelection();
     drawCurrentGrid();
 }
@@ -313,6 +314,39 @@ void GlWidget::generateCubes(texId_t pTexture, int pNbCubes)
     {
         item_t item("",spacing_/3.0f, pTexture);
         itemList_.append(item);
+    }
+}
+
+/* Display a 2D grid and translate it according to the zoom
+ * offset, when hand is on a line, make the line higher
+ * to better see items
+ */
+void GlWidget::computeWaveGrid(int pItemPerLine, float pZOffset)
+{
+    gridSize_ = pItemPerLine;
+    spacing_ = boxSize_/gridSize_;
+    float itemSize = spacing_/2;
+
+    float offset = (gridSize_-1)*spacing_/2;
+    QMutexLocker locker(&mutexList_);
+
+    QList<item_t>::iterator it;
+    int row = 0, col = 0;
+    for (it = itemList_.begin(); it != itemList_.end(); it++)
+    {
+      it->size_ = itemSize;
+      it->x_ = col*spacing_ - offset;
+      it->y_ = -boxSize_/3.0;
+      it->z_ = -row*spacing_ + pZOffset; //along negative z
+      if (abs(palmPos_.z - it->z_) <= spacing_/4)
+          it->y_ = 0;
+
+      col += 1;
+      if ( col >= pItemPerLine )
+      {
+          row++;
+          col = 0;
+      }
     }
 }
 

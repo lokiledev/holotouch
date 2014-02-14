@@ -100,10 +100,13 @@ public:
                         int pL,
                         int pH,
                         int pW);
+
+    void computeWaveGrid(int pItemPerLine = 6, float pZOffset = 0.0f);
     void drawPalmPos();
     void drawCurrentGrid();
     void reloadFolder();
     void changeDirectory(const QString& pFolder);
+
     void customEvent(QEvent* pEvent);
 
 private:
