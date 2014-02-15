@@ -12,7 +12,7 @@
 #include "tracking_defines.h"
 
 #define NB_TEXTURE 7
-#define BOX_SIZE 5.0f //the grid is always inside the box
+#define BOX_SIZE 8.0f //the grid is always inside the box
 
 using namespace Leap;
 

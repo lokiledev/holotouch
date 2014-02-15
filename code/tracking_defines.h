@@ -26,7 +26,7 @@ typedef struct {
 
 #define WEBCAM_FOV (M_PI_4) // 45° of field of view for the webcam
 
-#define DEPTH_ADJUST 5.0f //offset in distance
+#define DEPTH_ADJUST 7.0f //offset in distance
 #define MOVE_SCALE 1.5f // mult
 
 //Parameters initially from wiimote configuration of

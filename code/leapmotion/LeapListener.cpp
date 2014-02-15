@@ -6,8 +6,8 @@
 
 // adapt the leapmotion coordinates to our application coordinates
 #define SCALE_FACTOR_XY 30.0f
-#define Z_OFFSET 100.0f
-#define Z_SCALE_FACTOR 40.0f
+#define Z_OFFSET 200.0f
+#define Z_SCALE_FACTOR 20.0f
 #define Y_OFFSET 200.0f
 
 #define SELECT_TRESHOLD 60.0f //hand opening in mm
