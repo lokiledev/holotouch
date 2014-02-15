@@ -62,6 +62,8 @@ private:
     float boxSize_;
     int gridSize_;
     float spacing_;
+    float zoomOffset_;
+    float maxZoom_;
 
     QDir fileExplorer_;
     globalAnimation_t currentAnim_;

@@ -25,6 +25,7 @@ private:
     int trackedItem_;
     bool trackPrevious_;
     handOpening_t handState_;
+    float zoomFactor_;
 
     //right hand palm position
     Leap::Vector rPos_;
@@ -49,6 +50,14 @@ public:
      *detector
      */
     void setItem(int pNewItem);
+
+private:
+    //encapsulated functions for sending events
+    void openEvent();
+    void closeEvent();
+    void zoomEvent();
+    void clickEvent();
+    void doubleClickEvent();
 };
 
 #endif // LEAPLISTENER_H

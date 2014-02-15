@@ -30,6 +30,8 @@ GlWidget::GlWidget(QWidget *parent) :
     boxSize_(BOX_SIZE),
     gridSize_(0),
     spacing_(DEFAULT_SPACING),
+    zoomOffset_(0),
+    maxZoom_(BOX_SIZE),
     fileExplorer_(QDir::home()),
     currentAnim_(IDLE)
 {
@@ -103,7 +105,7 @@ void GlWidget::paintGL()
 
     // Objects
     drawPalmPos();
-    computeWaveGrid();
+    computeWaveGrid(6,zoomOffset_);
     //computeGrid(boxSize_);
     handleSelection();
     handleHovering();
@@ -285,6 +287,8 @@ void GlWidget::computeWaveGrid(int pItemPerLine, float pZOffset)
     float itemSize = spacing_/2;
 
     float offset = (gridSize_-1)*spacing_/2;
+    //maxZoom is the limit for the offset
+    maxZoom_ = (itemList_.size()/gridSize_)*2*spacing_;
     QMutexLocker locker(&mutexList_);
 
     QList<item_t>::iterator it;
@@ -302,6 +306,7 @@ void GlWidget::computeWaveGrid(int pItemPerLine, float pZOffset)
           col = 0;
       }
     }
+    //update the zoom limit
 }
 
 void GlWidget::handleHovering()
@@ -309,7 +314,7 @@ void GlWidget::handleHovering()
     QList<item_t>::iterator it;
     for (it = itemList_.begin(); it != itemList_.end(); it++)
     {
-        if (abs(palmPos_.z - it->z_) <= spacing_/4.0f)
+        if (abs(palmPos_.z - it->z_) <= spacing_/2.0f)
         {
             if (it->yOffset_ < boxSize_/3.0)
                 it->yOffset_ += boxSize_/30.0;
@@ -473,6 +478,7 @@ void GlWidget::reloadFolder()
         newList.append(item);
     }
     itemList_ = newList;
+    zoomOffset_ = 0;
 }
 
 void GlWidget::customEvent(QEvent* pEvent)
@@ -486,7 +492,7 @@ void GlWidget::customEvent(QEvent* pEvent)
         //detect if hand is near an item
         int item = closestItem(spacing_);
         leapListener_.setItem(item);
-
+        float offset = 0;
         //handle type of event
         switch (event->type() )
         {
@@ -501,6 +507,12 @@ void GlWidget::customEvent(QEvent* pEvent)
             break;
         case HandEvent::DoubleClicked:
             break;
+        case HandEvent::Zoom:
+            offset = event->zoom();
+            if ( zoomOffset_ + offset <= maxZoom_ )
+                zoomOffset_ += offset;
+            if ( zoomOffset_ < 0 )
+                zoomOffset_ = 0;
         default:
             break;
         }

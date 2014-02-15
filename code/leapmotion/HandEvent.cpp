@@ -4,11 +4,13 @@
 HandEvent::HandEvent(QEvent::Type pType,
           Vector pPos,
           int pSelect,
-          Selection_t pSelectMode)
+          Selection_t pSelectMode,
+          float pZoom)
     : QEvent(pType),
       pos_(pPos),
       itemSelected_(pSelect),
-      selection_(pSelectMode)
+      selection_(pSelectMode),
+      zoomOffset_(pZoom)
 {
 }
 
@@ -25,4 +27,9 @@ int HandEvent::item()
 HandEvent::Selection_t HandEvent::selectMode()
 {
     return selection_;
+}
+
+float HandEvent::zoom()
+{
+    return zoomOffset_;
 }

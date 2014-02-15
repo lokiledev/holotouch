@@ -12,15 +12,18 @@
 
 #define SELECT_TRESHOLD 60.0f //hand opening in mm
 #define RELEASE_TRESHOLD 80.0f //hand opening in mm
-
 #define HOLD_TIME 10 //nb of frame with hand closed
+
+#define ANGLE_ZOOM_TRESHOLD 30.0f // pitch of left hand in degrees
+#define ZOOM_FACTOR 0.5f // each frame in zoom moves by this.
 
 LeapListener::LeapListener()
     : rightHand_(-1),
       leftHand_(-1),
       trackedItem_(-1),
       trackPrevious_(false),
-      handState_(OPEN)
+      handState_(OPEN),
+      zoomFactor_(0)
 {
 }
 
@@ -39,7 +42,6 @@ void LeapListener::onConnect(const Controller& controller)
 
 void LeapListener::onDisconnect(const Controller& controller)
 {
-    //Note: not dispatched when running in a debugger.
     Q_UNUSED(controller);
     qDebug() << "Disconnected";
 }
@@ -74,6 +76,7 @@ void LeapListener::onFrame(const Controller& controller)
         static int countClose = 0;
         static int countUp = 0;
         static bool clicked = false;
+        static bool zoom = false;
         /* If hand is not near the same item, reset counters
          */
         if ( !trackPrevious_ )
@@ -117,7 +120,6 @@ void LeapListener::onFrame(const Controller& controller)
             break;
         }
 
-
         //adjust to our view coordinates
         rPos_.x = pos.x/SCALE_FACTOR_XY;
         rPos_.y = (pos.y - Y_OFFSET)/SCALE_FACTOR_XY;
@@ -128,24 +130,39 @@ void LeapListener::onFrame(const Controller& controller)
         {
             Hand leftHand = frame.hands().leftmost();
             float radius = leftHand.sphereRadius();
+            // If left hand is visible, select multiple items at a time
             if ( radius <= SELECT_TRESHOLD )
                 selectionMode_ = HandEvent::MULTIPLE;
-        }
 
-        if ( receiver_ )
-        {
-            HandEvent* event = 0;
-            if ( clicked )
+            //hand pitch controls zoom/scroll in the view
+            float pitch = leftHand.direction().pitch();
+            pitch = pitch*180/PI;
+            zoomFactor_ = 0;
+            if (pitch <= -ANGLE_ZOOM_TRESHOLD)
             {
-                event = new HandEvent(HandEvent::Clicked, rPos_, trackedItem_, selectionMode_);
-                clicked = false;
+                zoomFactor_ = 0.1f;
+                zoom = true;
             }
-            else if ( handState_ == CLOSE )
-                event = new HandEvent(HandEvent::Closed, rPos_, trackedItem_);
-            else if ( handState_ == OPEN )
-                event = new HandEvent(HandEvent::Opened, rPos_, trackedItem_);
-            QApplication::sendEvent(receiver_, event);
+            else if ( pitch >= ANGLE_ZOOM_TRESHOLD )
+            {
+                zoomFactor_ = -0.1f;
+                zoom = true;
+            }
+
         }
+        if ( zoom )
+            zoomEvent();
+            zoom = false;
+        if ( clicked )
+        {
+            clickEvent();
+            clicked = false;
+        }
+        else if ( handState_ == CLOSE )
+            closeEvent();
+        else if ( handState_ == OPEN )
+            openEvent();
+
     }
 }
 
@@ -162,3 +179,55 @@ void LeapListener::setItem(int pNewItem)
         trackedItem_ = pNewItem;
     }
 }
+
+void LeapListener::openEvent()
+{
+    if ( receiver_ )
+    {
+        HandEvent* event = 0;
+        event = new HandEvent(HandEvent::Opened, rPos_, trackedItem_);
+        QApplication::sendEvent(receiver_,event);
+    }
+}
+
+void LeapListener::closeEvent()
+{
+    if ( receiver_ )
+    {
+        HandEvent* event = 0;
+        event = new HandEvent(HandEvent::Closed, rPos_, trackedItem_);
+        QApplication::sendEvent(receiver_,event);
+    }
+}
+
+void LeapListener::zoomEvent()
+{
+    if ( receiver_ )
+    {
+        HandEvent* event = 0;
+        event = new HandEvent(HandEvent::Zoom, rPos_, trackedItem_, selectionMode_, zoomFactor_);
+        QApplication::sendEvent(receiver_,event);
+    }
+}
+
+void LeapListener::clickEvent()
+{
+    if ( receiver_ )
+    {
+        HandEvent* event = 0;
+        event = new HandEvent(HandEvent::Clicked, rPos_, trackedItem_, selectionMode_);
+        QApplication::sendEvent(receiver_,event);
+    }
+}
+
+void LeapListener::doubleClickEvent()
+{
+    if ( receiver_ )
+    {
+        HandEvent* event = 0;
+        event = new HandEvent(HandEvent::DoubleClicked, rPos_, trackedItem_, selectionMode_);
+        QApplication::sendEvent(receiver_,event);
+    }
+}
+
+
