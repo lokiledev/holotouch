@@ -90,17 +90,6 @@ public:
                   float pCenterZ,
                   float pSize);
     void drawTile(const item_t& pItem);
-    void drawCube2DGrid(texId_t pTexture,
-                        float pSpacing,
-                        float pCubeSize,
-                        int pL,
-                        int pH);
-    void drawCube3DGrid(texId_t pTexture,
-                        float pSpacing,
-                        float pCubeSize,
-                        int pL,
-                        int pH,
-                        int pW);
 
     void computeWaveGrid(int pItemPerLine = 6, float pZOffset = 0.0f);
     void drawPalmPos();

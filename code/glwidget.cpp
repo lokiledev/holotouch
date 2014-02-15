@@ -228,54 +228,9 @@ void GlWidget::drawTile(const item_t& pItem)
         //text is masked by cubes,
         //draw under to see it clearly
         renderText(pItem.x_ - pItem.size_/2.0f,
-                   pItem.y_ - pItem.size_,
+                   pItem.y_+pItem.yOffset_ - pItem.size_,
                    pItem.z_ + pItem.size_/2.0f,
                    pItem.fileName_);
-    }
-}
-
-//Draw a 2D grid composed of L*H cubes of size CubeZise spaced by pSpacing
-void GlWidget::drawCube2DGrid(texId_t pTexture,float pSpacing, float pCubeSize, int pL,int pH)
-{
-    glTranslatef(-(pSpacing+pCubeSize)*(pL-1)/2,(pSpacing+pCubeSize)*(pH-1)/2,0);
-    for(int i = 0; i < pH; ++i)
-    {
-        for(int j = 0; j < pL; ++j)
-        {
-            drawCube(pTexture,0,0,0,pCubeSize);
-            //draw next cube to the right (greater X)
-            glTranslatef(pSpacing+pCubeSize,0,0);
-        }
-        //go back at the start of the line and draw downards y
-        glTranslatef(-(pSpacing + pCubeSize)*pL,-(pSpacing+pCubeSize),0);
-    }
-}
-
-//Draw a 3D grid composed of L*H cubes of size CubeZise spaced by pSpacing
-void GlWidget::drawCube3DGrid(texId_t pTexture,
-                              float pSpacing,
-                              float pCubeSize,
-                              int pL,
-                              int pH,
-                              int pW)
-{
-    glTranslatef(-(pSpacing+pCubeSize)*(pL-1)/2,
-                 (pSpacing+pCubeSize)*(pH-1)/2,
-                 -(pSpacing+pCubeSize)*(pW-1)/2);
-    for(int z = 0; z < pW; z++)
-    {
-        for(int y = 0; y < pH; ++y)
-        {
-            for(int x = 0; x < pL; ++x)
-            {
-                drawCube(pTexture,0,0,0,pCubeSize);
-                //draw next cube to the right (greater X)
-                glTranslatef(pSpacing+pCubeSize,0,0);
-            }
-            //go back at the start of the line and draw downards y
-            glTranslatef(-(pSpacing + pCubeSize)*pL,-(pSpacing+pCubeSize),0);
-        }
-        glTranslatef(0,(pSpacing+pCubeSize)*pH,-(pSpacing+pCubeSize));
     }
 }
 
@@ -339,7 +294,7 @@ void GlWidget::computeWaveGrid(int pItemPerLine, float pZOffset)
       it->size_ = itemSize;
       it->x_ = col*spacing_ - offset;
       it->y_ = -boxSize_/3.0;
-      it->z_ = -row*spacing_ + pZOffset; //along negative z
+      it->z_ = -row*2*spacing_ + pZOffset; //along negative z
       col += 1;
       if ( col >= pItemPerLine )
       {
@@ -354,7 +309,7 @@ void GlWidget::handleHovering()
     QList<item_t>::iterator it;
     for (it = itemList_.begin(); it != itemList_.end(); it++)
     {
-        if (abs(palmPos_.z - it->z_) <= spacing_/2.0f)
+        if (abs(palmPos_.z - it->z_) <= spacing_/4.0f)
         {
             if (it->yOffset_ < boxSize_/3.0)
                 it->yOffset_ += boxSize_/30.0;
@@ -421,7 +376,7 @@ int GlWidget::closestItem(float pTreshold)
     int id = -1, i = 0;
     for (it = itemList_.begin(); it != itemList_.end(); it++)
     {
-        Leap::Vector testV(it->x_,it->y_, it->z_);
+        Leap::Vector testV(it->x_,it->y_+it->yOffset_, it->z_);
         float delta = palmPos_.distanceTo(testV);
         if ((delta <= pTreshold) && (delta <= minDist))
         {
