@@ -93,7 +93,7 @@ public:
                   float pSize);
     void drawTile(const item_t& pItem);
 
-    void computeWaveGrid(int pItemPerLine = 6, float pZOffset = 0.0f);
+    void computeWaveGrid(int pItemPerLine = 6);
     void drawPalmPos();
     void drawCurrentGrid();
     void reloadFolder();
@@ -104,7 +104,7 @@ public:
 private:
     void generateCubes(texId_t pTexture, int pNbCubes);
     void computeGrid(float pPboxSize = BOX_SIZE);
-    void computeTube(int pItemPerCircle, float pYOffset);
+    void computeTube(int pItemPerCircle = 8);
     int closestItem(float pTreshold);
     void handleSelection();
     void handleHovering();

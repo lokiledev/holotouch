@@ -14,8 +14,8 @@
 #define RELEASE_TRESHOLD 80.0f //hand opening in mm
 #define HOLD_TIME 10 //nb of frame with hand closed
 
-#define ANGLE_ZOOM_TRESHOLD 30.0f // pitch of left hand in degrees
-#define ZOOM_FACTOR 0.5f // each frame in zoom moves by this.
+#define ANGLE_ZOOM_TRESHOLD 20.0f // pitch of left hand in degrees
+#define ZOOM_FACTOR 0.01f // each frame in zoom moves by this.
 
 LeapListener::LeapListener()
     : rightHand_(-1),
@@ -140,12 +140,12 @@ void LeapListener::onFrame(const Controller& controller)
             zoomFactor_ = 0;
             if (pitch <= -ANGLE_ZOOM_TRESHOLD)
             {
-                zoomFactor_ = 0.1f;
+                zoomFactor_ = ZOOM_FACTOR*(pitch + ANGLE_ZOOM_TRESHOLD);
                 zoom = true;
             }
             else if ( pitch >= ANGLE_ZOOM_TRESHOLD )
             {
-                zoomFactor_ = -0.1f;
+                zoomFactor_ = ZOOM_FACTOR*(pitch - ANGLE_ZOOM_TRESHOLD);
                 zoom = true;
             }
 

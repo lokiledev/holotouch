@@ -105,7 +105,7 @@ void GlWidget::paintGL()
 
     // Objects
     drawPalmPos();
-    computeTube(6, zoomOffset_);
+    computeTube();
     handleSelection();
     drawCurrentGrid();
 }
@@ -278,7 +278,7 @@ void GlWidget::generateCubes(texId_t pTexture, int pNbCubes)
  * offset, when hand is on a line, make the line higher
  * to better see items
  */
-void GlWidget::computeWaveGrid(int pItemPerLine, float pZOffset)
+void GlWidget::computeWaveGrid(int pItemPerLine)
 {
     gridSize_ = pItemPerLine;
     spacing_ = boxSize_/gridSize_;
@@ -296,7 +296,7 @@ void GlWidget::computeWaveGrid(int pItemPerLine, float pZOffset)
       it->size_ = itemSize;
       it->x_ = col*spacing_ - offset;
       it->y_ = -boxSize_/3.0;
-      it->z_ = -row*2*spacing_ + pZOffset; //along negative z
+      it->z_ = -row*2*spacing_ + zoomOffset_; //along negative z
       col += 1;
       if ( col >= pItemPerLine )
       {
@@ -308,7 +308,7 @@ void GlWidget::computeWaveGrid(int pItemPerLine, float pZOffset)
 }
 
 //creates a vertical "tube" with items around its edges
-void GlWidget::computeTube(int pItemPerCircle, float pYOffset)
+void GlWidget::computeTube(int pItemPerCircle)
 {
     //nb of items per circle in the cylinder
     gridSize_ = pItemPerCircle;
@@ -332,7 +332,7 @@ void GlWidget::computeTube(int pItemPerCircle, float pYOffset)
     {
       it->size_ = itemSize;
       it->x_ = cos(posAngle*angle)*radius;
-      it->y_ = -pYOffset + (spacing_)*circleNb;
+      it->y_ = -zoomOffset_ + (spacing_)*circleNb;
 
       //the nearest item is at z = 0 (offset by boxSize/2)
       it->z_ = -radius + sin(posAngle*angle)*radius;
