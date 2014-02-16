@@ -150,6 +150,8 @@ void LeapListener::onFrame(const Controller& controller)
             }
 
         }
+        if ( detectSwipe(frame) )
+            swipeEvent();
         if ( zoom )
             zoomEvent();
             zoom = false;
@@ -164,6 +166,25 @@ void LeapListener::onFrame(const Controller& controller)
             openEvent();
 
     }
+}
+
+bool LeapListener::detectSwipe(const Frame& pFrame)
+{
+    bool ok = false;
+    GestureList list = pFrame.gestures();
+    if (list.count() > 0)
+    {
+        Gesture gest = list[0];
+        //detect end of gesture
+        if ( (gest.type() == Gesture::TYPE_SWIPE)
+             && (gest.state() == Gesture::STATE_STOP) &&
+             gest.durationSeconds() >= 0.2f )
+        {
+            qDebug()<<"Swiped Event!!";
+            ok = true;
+        }
+    }
+    return ok;
 }
 
 void LeapListener::setReceiver(QObject* pObject)
@@ -226,6 +247,16 @@ void LeapListener::doubleClickEvent()
     {
         HandEvent* event = 0;
         event = new HandEvent(HandEvent::DoubleClicked, rPos_, trackedItem_, selectionMode_);
+        QApplication::sendEvent(receiver_,event);
+    }
+}
+
+void LeapListener::swipeEvent()
+{
+    if ( receiver_ )
+    {
+        HandEvent* event = 0;
+        event = new HandEvent(HandEvent::Swiped, rPos_, trackedItem_);
         QApplication::sendEvent(receiver_,event);
     }
 }

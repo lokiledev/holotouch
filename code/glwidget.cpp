@@ -481,7 +481,7 @@ void GlWidget::reloadFolder()
     QFileInfoList fileList = fileExplorer_.entryInfoList();
     QFileInfoList::const_iterator it;
     QList<item_t> newList;
-    qDebug()<<"Number of items in folder: "<<fileList.size();
+
     for( it = fileList.cbegin(); it != fileList.cend(); it++)
     {
         //TODO: choose better textures
@@ -551,6 +551,10 @@ void GlWidget::customEvent(QEvent* pEvent)
                 zoomOffset_ += offset;
             if ( zoomOffset_ < 0 )
                 zoomOffset_ = 0;
+            break;
+        case HandEvent::Swiped:
+            changeDirectory("..");
+            break;
         default:
             break;
         }

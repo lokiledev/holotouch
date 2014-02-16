@@ -50,6 +50,7 @@ public:
      *detector
      */
     void setItem(int pNewItem);
+    bool detectSwipe(const Frame& pFrame);
 
 private:
     //encapsulated functions for sending events
@@ -58,6 +59,7 @@ private:
     void zoomEvent();
     void clickEvent();
     void doubleClickEvent();
+    void swipeEvent();
 };
 
 #endif // LEAPLISTENER_H
