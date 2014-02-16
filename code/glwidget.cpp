@@ -105,7 +105,7 @@ void GlWidget::paintGL()
 
     // Objects
     drawPalmPos();
-    computeTube();
+    computeTube(8);
     handleSelection();
     drawCurrentGrid();
 }
@@ -320,10 +320,10 @@ void GlWidget::computeTube(int pItemPerCircle)
     //distance between items in a circle inside the box
 
     spacing_ = (float)boxSize_*PI/(float)gridSize_/2;
-    float itemSize = spacing_/2;
+    float itemSize = spacing_;
 
     //maxZoom is the limit for the offset
-    maxZoom_ = (itemList_.size()/gridSize_)*spacing_;
+    maxZoom_ = (itemList_.size()/gridSize_)*spacing_*2;
     QMutexLocker locker(&mutexList_);
 
     QList<item_t>::iterator it;
@@ -332,7 +332,7 @@ void GlWidget::computeTube(int pItemPerCircle)
     {
       it->size_ = itemSize;
       it->x_ = cos(posAngle*angle)*radius;
-      it->y_ = -zoomOffset_ + (spacing_)*circleNb;
+      it->y_ = -zoomOffset_ + 2*spacing_*circleNb + posAngle*(spacing_/gridSize_);
 
       //the nearest item is at z = 0 (offset by boxSize/2)
       it->z_ = -radius + sin(posAngle*angle)*radius;
