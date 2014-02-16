@@ -44,7 +44,6 @@ GlWidget::GlWidget(QWidget *parent) :
     palmPos_.y = 0.0f;
     palmPos_.z = 5.0f;
     setCursor(Qt::BlankCursor);
-    //generateCubes(CRATE,5*5*5);
     reloadFolder();
 }
 
@@ -476,10 +475,13 @@ void GlWidget::reloadFolder()
 
     qDebug() << "loaded folder: "<< fileExplorer_.path();
 
+    fileExplorer_.setFilter(QDir::Files | QDir::Dirs | QDir::NoDotAndDotDot);
+    fileExplorer_.setSorting(QDir::DirsFirst);
+
     QFileInfoList fileList = fileExplorer_.entryInfoList();
     QFileInfoList::const_iterator it;
     QList<item_t> newList;
-
+    qDebug()<<"Number of items in folder: "<<fileList.size();
     for( it = fileList.cbegin(); it != fileList.cend(); it++)
     {
         //TODO: choose better textures
