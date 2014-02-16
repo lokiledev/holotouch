@@ -331,7 +331,7 @@ void GlWidget::computeTube(int pItemPerCircle)
     {
       it->size_ = itemSize;
       it->x_ = cos(posAngle*angle)*radius;
-      it->y_ = -zoomOffset_ + 2*spacing_*circleNb + posAngle*(spacing_/gridSize_);
+      it->y_ = zoomOffset_ - 2*spacing_*circleNb + posAngle*(spacing_/gridSize_);
 
       //the nearest item is at z = 0 (offset by boxSize/2)
       it->z_ = -radius + sin(posAngle*angle)*radius;
@@ -476,7 +476,7 @@ void GlWidget::reloadFolder()
     qDebug() << "loaded folder: "<< fileExplorer_.path();
 
     fileExplorer_.setFilter(QDir::Files | QDir::Dirs | QDir::NoDotAndDotDot);
-    fileExplorer_.setSorting(QDir::DirsFirst);
+    fileExplorer_.setSorting(QDir::DirsFirst | QDir::Name);
 
     QFileInfoList fileList = fileExplorer_.entryInfoList();
     QFileInfoList::const_iterator it;
