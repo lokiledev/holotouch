@@ -105,10 +105,8 @@ void GlWidget::paintGL()
 
     // Objects
     drawPalmPos();
-    computeWaveGrid(6,zoomOffset_);
-    //computeGrid(boxSize_);
+    computeTube(6, zoomOffset_);
     handleSelection();
-    handleHovering();
     drawCurrentGrid();
 }
 
@@ -306,7 +304,45 @@ void GlWidget::computeWaveGrid(int pItemPerLine, float pZOffset)
           col = 0;
       }
     }
-    //update the zoom limit
+    handleHovering();
+}
+
+//creates a vertical "tube" with items around its edges
+void GlWidget::computeTube(int pItemPerCircle, float pYOffset)
+{
+    //nb of items per circle in the cylinder
+    gridSize_ = pItemPerCircle;
+
+    //angle between each branch in radians
+    float angle = 2*PI/pItemPerCircle;
+    float radius = boxSize_/2;
+
+    //distance between items in a circle inside the box
+
+    spacing_ = (float)boxSize_*PI/(float)gridSize_/2;
+    float itemSize = spacing_/2;
+
+    //maxZoom is the limit for the offset
+    maxZoom_ = (itemList_.size()/gridSize_)*spacing_;
+    QMutexLocker locker(&mutexList_);
+
+    QList<item_t>::iterator it;
+    int posAngle = 0, circleNb = 0;
+    for (it = itemList_.begin(); it != itemList_.end(); it++)
+    {
+      it->size_ = itemSize;
+      it->x_ = cos(posAngle*angle)*radius;
+      it->y_ = -pYOffset + (spacing_)*circleNb;
+
+      //the nearest item is at z = 0 (offset by boxSize/2)
+      it->z_ = -radius + sin(posAngle*angle)*radius;
+      posAngle += 1;
+      if ( posAngle >= pItemPerCircle )
+      {
+          circleNb++;
+          posAngle = 0;
+      }
+    }
 }
 
 void GlWidget::handleHovering()

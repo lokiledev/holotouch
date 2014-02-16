@@ -104,6 +104,7 @@ public:
 private:
     void generateCubes(texId_t pTexture, int pNbCubes);
     void computeGrid(float pPboxSize = BOX_SIZE);
+    void computeTube(int pItemPerCircle, float pYOffset);
     int closestItem(float pTreshold);
     void handleSelection();
     void handleHovering();
