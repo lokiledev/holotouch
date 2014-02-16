@@ -60,6 +60,7 @@ void LeapListener::onFrame(const Controller& controller)
     if (frame.hands().count() >= 1)
     {
         Hand hand = frame.hands()[0];
+        rightHand_ = hand.id();
         Vector pos = hand.palmPosition();
 
 
@@ -177,11 +178,17 @@ bool LeapListener::detectSwipe(const Frame& pFrame)
         Gesture gest = list[0];
         //detect end of gesture
         if ( (gest.type() == Gesture::TYPE_SWIPE)
-             && (gest.state() == Gesture::STATE_STOP) &&
-             gest.durationSeconds() >= 0.2f )
+             && gest.hands()[0].isValid()
+             && gest.hands()[0].id() == rightHand_
+             && gest.state() == Gesture::STATE_STOP )
         {
-            qDebug()<<"Swiped Event!!";
-            ok = true;
+            SwipeGesture swipe = SwipeGesture(gest);
+            // direction almost vertical
+            float angle = swipe.direction().angleTo(Vector(0,1,0))*180.0f/PI;
+            if (angle <= 20.0f)
+            {
+                ok = true;
+            }
         }
     }
     return ok;

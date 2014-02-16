@@ -318,7 +318,7 @@ void GlWidget::computeTube(int pItemPerCircle)
 
     //distance between items in a circle inside the box
 
-    spacing_ = (float)boxSize_*PI/(float)gridSize_/2;
+    spacing_ = (float)boxSize_*PI/(float)gridSize_/2.0f;
     float itemSize = spacing_;
 
     //maxZoom is the limit for the offset
