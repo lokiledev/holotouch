@@ -1,4 +1,4 @@
-How to install dev environment
+How to install dev environment for Linux (Ubuntu)
 
 Install opencv (V2.4.8):
 http://miloq.blogspot.fr/2012/12/install-opencv-ubuntu-linux.html
