@@ -22,7 +22,6 @@ private:
     QLabel* webcamView_;
     QPixmap imgWebcam_;
     QTimer* timer_;
-    //QMenu* menu_;
     GlWidget* glView_;
 
 public:

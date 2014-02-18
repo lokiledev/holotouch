@@ -366,6 +366,19 @@ void GlWidget::handleGrab()
 {
     if ( grabbing_ )
     {
+        if ( lastPos_.empty() )
+        {
+            for (int i = 0; i < grabList_.size(); i++)
+            {
+                Vector pos;
+                int item = grabList_.values()[i];
+                pos.x = itemList_[item].x_;
+                pos.y = itemList_[item].y_;
+                pos.z = itemList_[item].z_;
+                lastPos_.append(pos);
+            }
+        }
+
         int nbItem = grabList_.size();
         for ( int i = 0; i < nbItem; i++)
         {
@@ -374,15 +387,23 @@ void GlWidget::handleGrab()
             item.texture_ = realItem.texture_;
             if (i < lastPos_.size() )
             {
-                Vector newPos = lastPos_[i]*GRAB_SCALE;
-                item.x_ = newPos.x ;
-                item.y_ = newPos.y ;
-                item.z_ = newPos.z ;
+                Vector newPos = lastPos_[i];
+                if (newPos.distanceTo(palmPos_) > spacing_/4.0f)
+                {
+                    newPos+=(palmPos_-newPos)/10.0f;
+                }
+
+                item.x_ = lastPos_[i].x ;
+                item.y_ = lastPos_[i].y ;
+                item.z_ = lastPos_[i].z ;
+                lastPos_[i] = newPos;
                 item.size_ = spacing_/4.0f;
             }
             drawTile(item);
         }
     }
+    else
+        lastPos_.clear();
 }
 
 /*generate a cubic grid from itemList_
@@ -610,9 +631,6 @@ void GlWidget::customEvent(QEvent* pEvent)
        case HandEvent::Moved:
             //convert normalize hand pos to our interaction box
             palmPos_ = (event->pos()+Vector(-0.5f,-0.5f,-1.0f))*boxSize_*1.5f;
-            lastPos_.push_back(palmPos_);
-            if (lastPos_.size() > grabList_.size())
-                lastPos_.pop_front();
             break;
         default:
             break;
