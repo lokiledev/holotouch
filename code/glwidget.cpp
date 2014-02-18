@@ -462,12 +462,10 @@ void GlWidget::changeDirectory(const QString& pFolder)
 {
     bool ok = false;
     if ( pFolder == "..")
-    {
-        if( fileExplorer_.cdUp() )
-            ok = true;
-    }
-    else if ( fileExplorer_.cd(pFolder) )
-        ok = true;
+        ok = fileExplorer_.cdUp();
+    else
+        ok = fileExplorer_.cd(pFolder);
+
     if ( ok )
         reloadFolder();
 }
@@ -481,7 +479,7 @@ void GlWidget::reloadFolder()
     qDebug() << "loaded folder: "<< fileExplorer_.path();
 
     fileExplorer_.setFilter(QDir::Files | QDir::Dirs | QDir::NoDotAndDotDot);
-    fileExplorer_.setSorting(QDir::DirsFirst | QDir::Name);
+    fileExplorer_.setSorting(QDir::DirsFirst | QDir::Name | QDir::IgnoreCase);
 
     QFileInfoList fileList = fileExplorer_.entryInfoList();
     QFileInfoList::const_iterator it;
