@@ -12,7 +12,6 @@ mainwindow::mainwindow(QWidget *parent) :
     QMainWindow(parent),
     webcamView_(0),
     timer_(0),
-    menu_(0),
     glView_(0)
 {
 }
@@ -42,15 +41,21 @@ void mainwindow::init(void)
     glView_ = new GlWidget(this);
     hLayout->addWidget(glView_);
 
-    menu_ = menuBar()->addMenu("&Display");
+    QMenu* menu = menuBar()->addMenu("&Display");
     QAction* actionStart = new QAction("Start/Stop", this);
     QAction* actionHide = new QAction("Hide Webcam", this);
 
-    menu_->addAction(actionStart);
-    menu_->addAction(actionHide);
+    menu->addAction(actionStart);
+    menu->addAction(actionHide);
+
+    menu = menuBar()->addMenu("&Help");
+    QAction* actionAbout = new QAction(QString("About ")+QCoreApplication::applicationName(),this);
+    menu->addAction(actionAbout);
 
     connect(actionStart, SIGNAL(triggered()), this, SLOT(slotStart()));
     connect(actionHide, SIGNAL(triggered()), webcamView_, SLOT(hide()));
+
+    connect(actionAbout, SIGNAL(triggered()), this, SLOT(slotAbout()));
 
     connect(timer_, SIGNAL(timeout()), this, SLOT(slotGetNewFrame()));
     connect(this,SIGNAL(signalNewFrame(QPixmap )), this, SLOT(slotUpdateFrame(QPixmap)));
@@ -145,5 +150,17 @@ void mainwindow::slotUpdateFrame(QPixmap pNewFrame)
 
 void mainwindow::slotAbout()
 {
-    //TODO: about dialog
+    QMessageBox about(this);
+    about.setText(QCoreApplication::applicationName() + " v" + QCoreApplication::applicationVersion()
+                   + " Author: Loik Le Devehat");
+    stringstream ss;
+    ss<<"This application is distributed as free software."
+        <<"It uses headtracking with opencv to simulate augmented reality\n"
+        <<"and leapmotion to track your hands.\n"
+        <<"Source code available on: <a href='https://github.com/loikled/holotouch'> LoikLed Github repository</a>";
+    about.setTextFormat(Qt::RichText);
+    about.setInformativeText(QString::fromStdString(ss.str()));
+    about.setIcon(QMessageBox::Information);
+    about.adjustSize();
+    about.exec();
 }
