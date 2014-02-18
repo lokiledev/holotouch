@@ -62,7 +62,7 @@ void LeapListener::onFrame(const Controller& controller)
 
     if (frame.hands().count() >= 1)
     {
-        Hand hand = frame.hands()[0];
+        Hand hand = frame.hands().rightmost();
         rightHand_ = hand.id();
         Vector pos = hand.palmPosition();
 
@@ -87,6 +87,7 @@ void LeapListener::onFrame(const Controller& controller)
         {
             countClose = 0;
             countUp = 0;
+            handState_ = OPEN;
             trackPrevious_ = true;
         }
 
@@ -207,6 +208,11 @@ void LeapListener::setItem(int pNewItem)
 {
     if ( !(trackedItem_ == pNewItem) )
     {
+        // if you leave an item with closed hand = you grab it
+        if (handState_ == CLOSE)
+        {
+            grabEvent();
+        }
         trackPrevious_ = false;
         trackedItem_ = pNewItem;
     }
@@ -269,6 +275,16 @@ void LeapListener::swipeEvent()
         HandEvent* event = 0;
         event = new HandEvent(HandEvent::Swiped, rPos_, trackedItem_);
         QApplication::postEvent(receiver_,event);
+    }
+}
+
+void LeapListener::grabEvent()
+{
+    if ( receiver_ )
+    {
+        HandEvent* event = 0;
+        event = new HandEvent(HandEvent::Grabbed, rPos_, trackedItem_);
+        QApplication::postEvent(receiver_, event);
     }
 }
 

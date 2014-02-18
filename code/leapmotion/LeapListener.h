@@ -62,6 +62,7 @@ private:
     void clickEvent();
     void doubleClickEvent();
     void swipeEvent();
+    void grabEvent();
 };
 
 #endif // LEAPLISTENER_H

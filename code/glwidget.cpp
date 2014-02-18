@@ -560,6 +560,9 @@ void GlWidget::customEvent(QEvent* pEvent)
         case HandEvent::Swiped:
             changeDirectory("..");
             break;
+        case HandEvent::Grabbed:
+            qDebug()<<"Grab item: "<<event->item();
+            break;
         default:
             break;
         }

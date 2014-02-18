@@ -13,6 +13,7 @@ using namespace Leap;
 #define EVENT_DOUBLE_CLICK 1005
 #define EVENT_ZOOM 1006
 #define EVENT_SWIPE 1007
+#define EVENT_GRAB 1008
 
 //defining a custom Event
 class HandEvent: public QEvent
@@ -28,6 +29,7 @@ public:
     static const QEvent::Type DoubleClicked = static_cast<QEvent::Type>(EVENT_DOUBLE_CLICK);
     static const QEvent::Type Zoom = static_cast<QEvent::Type>(EVENT_ZOOM);
     static const QEvent::Type Swiped = static_cast<QEvent::Type>(EVENT_SWIPE);
+    static const QEvent::Type Grabbed = static_cast<QEvent::Type>(EVENT_GRAB);
 
 private:
     Leap::Vector pos_; // palm position
