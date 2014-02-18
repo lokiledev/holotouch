@@ -96,18 +96,15 @@ void GlWidget::paintGL()
 
     // disable lighting
     glDisable(GL_LIGHTING);
-
     glMatrixMode(GL_MODELVIEW);
-
     glLoadIdentity();
 
+    //place the camera like the real head and look at the center
     gluLookAt(head_.x,head_.y,head_.z, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f,0.0f);
 
     // Objects
     drawPalmPos();
     computeTube(10);
-    //computeWaveGrid(6);
-    //handleHovering();
     handleSelection();
     drawCurrentGrid();
     handleGrab();
@@ -606,7 +603,6 @@ void GlWidget::customEvent(QEvent* pEvent)
                     //only add new items to the set
                     grabList_.insert(event->item());
                     grabbing_ = true;
-                    qDebug()<<"Grab item: "<<event->item();
                 }
             }
             break;

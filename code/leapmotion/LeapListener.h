@@ -54,6 +54,7 @@ public:
      */
     void setItem(int pNewItem);
     bool detectSwipe(const Frame& pFrame);
+    bool detectClick(const Frame& pFrame);
 
 private:
     //encapsulated functions for sending events

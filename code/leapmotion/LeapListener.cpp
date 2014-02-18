@@ -34,7 +34,7 @@ void LeapListener::onInit(const Controller& controller)
 void LeapListener::onConnect(const Controller& controller)
 {
     qDebug() << "Connected";
-    controller.enableGesture(Gesture::TYPE_CIRCLE);
+    controller.enableGesture(Gesture::TYPE_KEY_TAP);
     controller.enableGesture(Gesture::TYPE_SWIPE);
 }
 
@@ -59,9 +59,9 @@ void LeapListener::onFrame(const Controller& controller)
     {
         Hand hand = frame.hands().rightmost();
         rightHand_ = hand.id();
-        Vector pos = hand.palmPosition();
+        Vector pos = hand.fingers().frontmost().tipPosition();
 
-
+/*
         //closed hand hard to detect
         // closed = select cube
         float handOpening = 0;
@@ -76,8 +76,9 @@ void LeapListener::onFrame(const Controller& controller)
         static int countUp = 0;
         static bool clicked = false;
         static bool zoom = false;
-        /* If hand is not near the same item, reset counters
-         */
+        //If hand is not near the same item, reset counters
+
+
         if ( !trackPrevious_ )
         {
             countClose = 0;
@@ -134,6 +135,10 @@ void LeapListener::onFrame(const Controller& controller)
                 }
             }
         }
+*/
+        static bool clicked = false;
+        static bool zoom = false;
+        clicked = detectClick(frame);
 
         InteractionBox box = frame.interactionBox();
         if ( box.isValid() )
@@ -205,6 +210,23 @@ bool LeapListener::detectSwipe(const Frame& pFrame)
                 ok = true;
                 swipeTimer_->start();
             }
+        }
+    }
+    return ok;
+}
+
+bool LeapListener::detectClick(const Frame& pFrame)
+{
+    bool ok = false;
+    GestureList list = pFrame.gestures();
+    if (list.count() > 0 )
+    {
+        Gesture gest = list[0];
+        if ( (gest.type() == Gesture::TYPE_KEY_TAP)
+             && gest.hands()[0].isValid()
+             && gest.hands()[0].id() == rightHand_)
+        {
+            ok = true;
         }
     }
     return ok;
