@@ -367,8 +367,9 @@ void GlWidget::handleGrab()
 {
     if ( grabbing_ )
     {
-        if ( lastPos_.empty() )
+        if ( lastPos_.empty() || lastPos_.size() < grabList_.size() )
         {
+            lastPos_.clear();
             for (int i = 0; i < grabList_.size(); i++)
             {
                 Vector pos;
