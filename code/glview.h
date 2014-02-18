@@ -8,8 +8,8 @@ class Glview : public QGLWidget
 {
     Q_OBJECT
 
-private:
-    QTimer *t_Timer;
+protected:
+    QTimer *timer_;
 
 public:
     Glview(int framesPerSecond = 0, QWidget *parent = 0);
@@ -19,7 +19,6 @@ public:
 
 public slots:
     void timeOutSlot();
-
 };
 
 

@@ -4,14 +4,15 @@ Glview::Glview(int framesPerSecond, QWidget *parent)
     : QGLWidget(parent)
 {
     if(framesPerSecond == 0)
-        t_Timer = NULL;
+        timer_ = NULL;
     else
     {
         int seconde = 1000; // 1 seconde = 1000 ms
         int timerInterval = seconde / framesPerSecond;
-        t_Timer = new QTimer(this);
-        connect(t_Timer, SIGNAL(timeout()), this, SLOT(timeOutSlot()));
-        t_Timer->start( timerInterval );
+        timer_ = new QTimer(this);
+        timer_->setInterval(timerInterval);
+        connect(timer_, SIGNAL(timeout()), this, SLOT(timeOutSlot()));
+        timer_->start();
     }
 }
 

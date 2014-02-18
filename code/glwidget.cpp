@@ -474,6 +474,7 @@ void GlWidget::changeDirectory(const QString& pFolder)
 void GlWidget::reloadFolder()
 {
     //protect access on the datalist
+    timer_->stop();
     QMutexLocker locker(&mutexList_);
 
     qDebug() << "loaded folder: "<< fileExplorer_.path();
@@ -494,7 +495,7 @@ void GlWidget::reloadFolder()
         else
         {
             //TODO: add more extensions
-            QString ext = it->suffix();
+            QString ext = it->suffix().toLower();
             if ( ext == "png" ||
                  ext == "jpg" ||
                  ext == "bmp")
@@ -520,6 +521,7 @@ void GlWidget::reloadFolder()
     }
     itemList_ = newList;
     zoomOffset_ = 0;
+    timer_->start();
 }
 
 void GlWidget::customEvent(QEvent* pEvent)

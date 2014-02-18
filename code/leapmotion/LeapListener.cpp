@@ -16,7 +16,7 @@
 
 #define ANGLE_ZOOM_TRESHOLD 20.0f // pitch of left hand in degrees
 #define ZOOM_FACTOR 0.01f // each frame in zoom moves by this.
-
+#define RESWIPE_INTERVAL 200 //minimum time between 2 swipes in ms
 LeapListener::LeapListener()
     : rightHand_(-1),
       leftHand_(-1),
@@ -25,6 +25,9 @@ LeapListener::LeapListener()
       handState_(OPEN),
       zoomFactor_(0)
 {
+    swipeTimer_ = new QTimer();
+    swipeTimer_->setInterval(RESWIPE_INTERVAL);
+    swipeTimer_->setSingleShot(true);
 }
 
 void LeapListener::onInit(const Controller& controller)
@@ -173,7 +176,7 @@ bool LeapListener::detectSwipe(const Frame& pFrame)
 {
     bool ok = false;
     GestureList list = pFrame.gestures();
-    if (list.count() > 0)
+    if (list.count() > 0 && !swipeTimer_->isActive() )
     {
         Gesture gest = list[0];
         //detect end of gesture
@@ -188,6 +191,7 @@ bool LeapListener::detectSwipe(const Frame& pFrame)
             if (angle <= 20.0f)
             {
                 ok = true;
+                swipeTimer_->start();
             }
         }
     }
@@ -244,7 +248,7 @@ void LeapListener::clickEvent()
     {
         HandEvent* event = 0;
         event = new HandEvent(HandEvent::Clicked, rPos_, trackedItem_, selectionMode_);
-        QApplication::sendEvent(receiver_,event);
+        QApplication::postEvent(receiver_,event);
     }
 }
 
@@ -264,7 +268,7 @@ void LeapListener::swipeEvent()
     {
         HandEvent* event = 0;
         event = new HandEvent(HandEvent::Swiped, rPos_, trackedItem_);
-        QApplication::sendEvent(receiver_,event);
+        QApplication::postEvent(receiver_,event);
     }
 }
 
