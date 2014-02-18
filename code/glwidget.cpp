@@ -108,6 +108,7 @@ void GlWidget::paintGL()
     handleSelection();
     drawCurrentGrid();
     handleGrab();
+    displayPath();
 }
 
 //helper function, loads a texture and assign it to an enum value
@@ -390,7 +391,7 @@ void GlWidget::handleGrab()
                 Vector newPos = lastPos_[i];
                 if (newPos.distanceTo(palmPos_) > spacing_/4.0f)
                 {
-                    newPos+=(palmPos_-newPos)/10.0f;
+                    newPos+=(palmPos_-newPos)/20.0f;
                 }
 
                 item.x_ = lastPos_[i].x ;
@@ -496,6 +497,23 @@ void GlWidget::handleSelection()
             if ( it->sizeOffset_ <= 0 )
                 it->sizeOffset_ = 0;
         }
+    }
+}
+
+void GlWidget::displayPath()
+{
+    QString path = fileExplorer_.absolutePath();
+    QStringList folderList = path.split("/");
+    QStringList::const_iterator it;
+    int x = 50;
+    int y = 20;
+
+    renderText(x,y,"Current Folder");
+    y+=20;
+    for (it = folderList.cbegin(); it != folderList.cend(); it++)
+    {
+        renderText(x,y,*it);
+        y += 20;
     }
 }
 

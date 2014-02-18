@@ -102,8 +102,7 @@ public:
     void drawCurrentGrid();
     void reloadFolder();
     void changeDirectory(const QString& pFolder);
-
-    void customEvent(QEvent* pEvent);
+    void displayPath();
 
 private:
     void generateCubes(texId_t pTexture, int pNbCubes);
@@ -113,6 +112,7 @@ private:
     void handleSelection();
     void handleHovering();
     void handleGrab();
+    void customEvent(QEvent* pEvent);
 
 signals:
 
