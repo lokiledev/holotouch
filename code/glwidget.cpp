@@ -104,7 +104,9 @@ void GlWidget::paintGL()
 
     // Objects
     drawPalmPos();
-    computeTube(8);
+    computeTube(10);
+    //computeWaveGrid(6);
+    //handleHovering();
     handleSelection();
     drawCurrentGrid();
 }
@@ -284,9 +286,10 @@ void GlWidget::computeWaveGrid(int pItemPerLine)
     float itemSize = spacing_/2;
 
     float offset = (gridSize_-1)*spacing_/2;
+
+    QMutexLocker locker(&mutexList_);
     //maxZoom is the limit for the offset
     maxZoom_ = (itemList_.size()/gridSize_)*2*spacing_;
-    QMutexLocker locker(&mutexList_);
 
     QList<item_t>::iterator it;
     int row = 0, col = 0;
@@ -316,14 +319,16 @@ void GlWidget::computeTube(int pItemPerCircle)
     float angle = 2*PI/pItemPerCircle;
     float radius = boxSize_/2;
 
-    //distance between items in a circle inside the box
 
-    spacing_ = (float)boxSize_*PI/(float)gridSize_/2.0f;
-    float itemSize = spacing_;
+    //distance between items in a circle inside the box
+    spacing_ = (float)boxSize_*PI/(float)gridSize_;
+    spacing_/=2.0f; // half the distance
+    float itemSize = spacing_/2.0f;
+
+    QMutexLocker locker(&mutexList_);
 
     //maxZoom is the limit for the offset
-    maxZoom_ = (itemList_.size()/gridSize_)*spacing_*2;
-    QMutexLocker locker(&mutexList_);
+    maxZoom_ = (itemList_.size()/gridSize_)*2*spacing_;
 
     QList<item_t>::iterator it;
     int posAngle = 0, circleNb = 0;
@@ -331,7 +336,7 @@ void GlWidget::computeTube(int pItemPerCircle)
     {
       it->size_ = itemSize;
       it->x_ = cos(posAngle*angle)*radius;
-      it->y_ = zoomOffset_ - 2*spacing_*circleNb + posAngle*(spacing_/gridSize_);
+      it->y_ = zoomOffset_ - 2*spacing_*circleNb - (posAngle*2*spacing_)/gridSize_;
 
       //the nearest item is at z = 0 (offset by boxSize/2)
       it->z_ = -radius + sin(posAngle*angle)*radius;
