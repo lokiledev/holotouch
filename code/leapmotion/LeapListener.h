@@ -27,6 +27,7 @@ private:
     bool trackPrevious_;
     handOpening_t handState_;
     float zoomFactor_;
+    bool grabbing_;
 
     //right hand palm position
     Leap::Vector rPos_;
@@ -63,6 +64,7 @@ private:
     void doubleClickEvent();
     void swipeEvent();
     void grabEvent();
+    void moveEvent();
 };
 
 #endif // LEAPLISTENER_H

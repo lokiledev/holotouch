@@ -47,6 +47,7 @@ public:
         //constructor
         item_t(const QString& pName = "", float pSize = 1.0f, texId_t pText = CRATE);
     };
+    typedef QSet<int> GrabList_t;
 
 private:
     LeapListener leapListener_;
@@ -64,11 +65,14 @@ private:
     float spacing_;
     float zoomOffset_;
     float maxZoom_;
+    bool grabbing_;
 
     QDir fileExplorer_;
     globalAnimation_t currentAnim_;
 
     mutable QMutex mutexList_;
+    GrabList_t grabList_;
+    QList<Leap::Vector> lastPos_;
 
 public:
     GlWidget(QWidget *parent = 0);
@@ -108,6 +112,7 @@ private:
     int closestItem(float pTreshold);
     void handleSelection();
     void handleHovering();
+    void handleGrab();
 
 signals:
 

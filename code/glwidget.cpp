@@ -9,7 +9,7 @@
 #include "leapmotion/HandEvent.h"
 
 #define DEFAULT_SPACING 2.0f
-
+#define GRAB_SCALE 1.1f
 GlWidget::item_t::item_t(const QString& pName, float pSize, texId_t pText)
     :x_(0),
      y_(0),
@@ -32,6 +32,7 @@ GlWidget::GlWidget(QWidget *parent) :
     spacing_(DEFAULT_SPACING),
     zoomOffset_(0),
     maxZoom_(BOX_SIZE),
+    grabbing_(false),
     fileExplorer_(QDir::home()),
     currentAnim_(IDLE)
 {
@@ -109,6 +110,7 @@ void GlWidget::paintGL()
     //handleHovering();
     handleSelection();
     drawCurrentGrid();
+    handleGrab();
 }
 
 //helper function, loads a texture and assign it to an enum value
@@ -319,7 +321,6 @@ void GlWidget::computeTube(int pItemPerCircle)
     float angle = 2*PI/pItemPerCircle;
     float radius = boxSize_/2;
 
-
     //distance between items in a circle inside the box
     spacing_ = (float)boxSize_*PI/(float)gridSize_;
     spacing_/=2.0f; // half the distance
@@ -361,6 +362,29 @@ void GlWidget::handleHovering()
         }
         else if (it->yOffset_ > 0.0f)
             it->yOffset_ -= boxSize_/30.0f;
+    }
+}
+
+void GlWidget::handleGrab()
+{
+    if ( grabbing_ )
+    {
+        int nbItem = grabList_.size();
+        for ( int i = 0; i < nbItem; i++)
+        {
+            item_t item;
+            const item_t& realItem = itemList_[i];
+            item.texture_ = realItem.texture_;
+            if (i < lastPos_.size() )
+            {
+                Vector newPos = lastPos_[i]*GRAB_SCALE;
+                item.x_ = newPos.x ;
+                item.y_ = newPos.y ;
+                item.z_ = newPos.z ;
+                item.size_ = spacing_/4.0f;
+            }
+            drawTile(item);
+        }
     }
 }
 
@@ -410,7 +434,6 @@ void GlWidget::drawCurrentGrid()
     QList<item_t>::iterator it;
     for (it = itemList_.begin(); it != itemList_.end(); it++)
         drawTile(*it);
-        //drawCube(*it);
 }
 
 //find the closest cube from the palm center
@@ -476,6 +499,8 @@ void GlWidget::reloadFolder()
     //protect access on the datalist
     timer_->stop();
     QMutexLocker locker(&mutexList_);
+    grabList_.clear();
+    grabbing_ = false;
 
     qDebug() << "loaded folder: "<< fileExplorer_.path();
 
@@ -529,17 +554,21 @@ void GlWidget::customEvent(QEvent* pEvent)
     HandEvent* event = dynamic_cast<HandEvent*>(pEvent);
     if ( event )
     {
-        //always get the new pos of the hand
-        palmPos_ = event->pos();
-
         //detect if hand is near an item
         int item = closestItem(spacing_);
         leapListener_.setItem(item);
+
         float offset = 0;
         //handle type of event
         switch (event->type() )
         {
         case HandEvent::Opened:
+            if ( grabbing_ && item == -1 )
+            {
+                grabbing_ = false;
+                grabList_.clear();
+                qDebug()<<"Release of items";
+            }
             break;
         case HandEvent::Closed:
             break;
@@ -561,7 +590,32 @@ void GlWidget::customEvent(QEvent* pEvent)
             changeDirectory("..");
             break;
         case HandEvent::Grabbed:
-            qDebug()<<"Grab item: "<<event->item();
+            if (event->item() != -1 && itemList_[event->item()].selected_ )
+            {
+                if (selectionMode_ == HandEvent::MULTIPLE )
+                {
+                    for (int i=0; i<itemList_.size(); i++)
+                    {
+                        if ( itemList_[i].selected_)
+                            grabList_.insert(i);
+                    }
+                    grabbing_ = true;
+                }
+                else
+                {
+                    //only add new items to the set
+                    grabList_.insert(event->item());
+                    grabbing_ = true;
+                    qDebug()<<"Grab item: "<<event->item();
+                }
+            }
+            break;
+       case HandEvent::Moved:
+            //convert normalize hand pos to our interaction box
+            palmPos_ = (event->pos()+Vector(-0.5f,-0.5f,-1.0f))*boxSize_*1.5f;
+            lastPos_.push_back(palmPos_);
+            if (lastPos_.size() > grabList_.size())
+                lastPos_.pop_front();
             break;
         default:
             break;
