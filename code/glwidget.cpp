@@ -370,7 +370,7 @@ void GlWidget::handleGrab()
         for ( int i = 0; i < nbItem; i++)
         {
             item_t item;
-            const item_t& realItem = itemList_[i];
+            const item_t& realItem = itemList_[grabList_.values()[i]];
             item.texture_ = realItem.texture_;
             if (i < lastPos_.size() )
             {
@@ -560,11 +560,11 @@ void GlWidget::customEvent(QEvent* pEvent)
         switch (event->type() )
         {
         case HandEvent::Opened:
+            //release nowhere, do nothing
             if ( grabbing_ && item == -1 )
             {
                 grabbing_ = false;
                 grabList_.clear();
-                qDebug()<<"Release of items";
             }
             break;
         case HandEvent::Closed:
@@ -601,6 +601,7 @@ void GlWidget::customEvent(QEvent* pEvent)
                 else
                 {
                     //only add new items to the set
+                    grabList_.clear();
                     grabList_.insert(event->item());
                     grabbing_ = true;
                 }

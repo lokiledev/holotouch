@@ -59,9 +59,9 @@ void LeapListener::onFrame(const Controller& controller)
     {
         Hand hand = frame.hands().rightmost();
         rightHand_ = hand.id();
-        Vector pos = hand.fingers().frontmost().tipPosition();
+        Vector pos = hand.palmPosition();
 
-/*
+
         //closed hand hard to detect
         // closed = select cube
         float handOpening = 0;
@@ -112,7 +112,6 @@ void LeapListener::onFrame(const Controller& controller)
                     {
                         handState_ = OPEN;
                         countClose = 0;
-                        clicked = true;
                     }
                 }
                 else
@@ -135,9 +134,7 @@ void LeapListener::onFrame(const Controller& controller)
                 }
             }
         }
-*/
-        static bool clicked = false;
-        static bool zoom = false;
+
         clicked = detectClick(frame);
 
         InteractionBox box = frame.interactionBox();
