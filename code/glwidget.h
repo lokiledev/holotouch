@@ -11,7 +11,7 @@
 #include "glview.h"
 #include "tracking_defines.h"
 
-#define NB_TEXTURE 7
+#define NB_TEXTURE 8
 #define BOX_SIZE 8.0f //the grid is always inside the box
 
 using namespace Leap;
@@ -28,9 +28,16 @@ public:
                   PICTURE,
                   TEXT,
                   VIDEO,
+                  BIN,
                   NONE = -1} texId_t;
 
-    typedef enum {IDLE, EXPAND, COLLAPSE} globalAnimation_t;
+    typedef enum {COPY,
+                  CUT,
+                  PASTE,
+                  NEW_FILE,
+                  NEW_FOLDER,
+                  DELETE,
+                  IDLE} FileAction_t;
 
     //simple way of describing a cube/item
     struct item_t {
@@ -68,11 +75,12 @@ private:
     bool grabbing_;
 
     QDir fileExplorer_;
-    globalAnimation_t currentAnim_;
 
     mutable QMutex mutexList_;
     GrabList_t grabList_;
     QList<Leap::Vector> lastPos_;
+    item_t bin_;
+    FileAction_t currentAction_;
 
 public:
     GlWidget(QWidget *parent = 0);
@@ -113,6 +121,7 @@ private:
     void handleHovering();
     void handleGrab();
     void customEvent(QEvent* pEvent);
+    void doCopy(int pDestination);
 
 signals:
 
@@ -123,6 +132,7 @@ public slots:
 
 private slots:
     void slotSelect(int pItem = -1);
+    void slotDeleteSelected(void);
 };
 
 #endif // GLWIDGET_H

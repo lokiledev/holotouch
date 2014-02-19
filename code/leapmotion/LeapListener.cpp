@@ -27,8 +27,11 @@ LeapListener::LeapListener()
 
 void LeapListener::onInit(const Controller& controller)
 {
-    Q_UNUSED(controller);
      qDebug() << "Initialized";
+     Config config = controller.config();
+     config.setFloat("Gesture.Circle.MinRadius", 30);
+     config.setFloat("Gesture.Circle.MinArc", 2*PI);
+     config.save();
 }
 
 void LeapListener::onConnect(const Controller& controller)
@@ -36,6 +39,7 @@ void LeapListener::onConnect(const Controller& controller)
     qDebug() << "Connected";
     controller.enableGesture(Gesture::TYPE_KEY_TAP);
     controller.enableGesture(Gesture::TYPE_SWIPE);
+    controller.enableGesture(Gesture::TYPE_CIRCLE);
 }
 
 void LeapListener::onDisconnect(const Controller& controller)

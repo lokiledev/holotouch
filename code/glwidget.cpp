@@ -10,6 +10,9 @@
 
 #define DEFAULT_SPACING 2.0f
 #define GRAB_SCALE 1.1f
+
+#define ID_BIN -2 //negative id != -1 for special items
+
 GlWidget::item_t::item_t(const QString& pName, float pSize, texId_t pText)
     :x_(0),
      y_(0),
@@ -34,7 +37,7 @@ GlWidget::GlWidget(QWidget *parent) :
     maxZoom_(BOX_SIZE),
     grabbing_(false),
     fileExplorer_(QDir::home()),
-    currentAnim_(IDLE)
+    currentAction_(IDLE)
 {
     leapListener_.setReceiver(this);
     controller_.addListener(leapListener_);
@@ -44,6 +47,13 @@ GlWidget::GlWidget(QWidget *parent) :
     palmPos_.x = 0.0f;
     palmPos_.y = 0.0f;
     palmPos_.z = 5.0f;
+
+    bin_.fileName_ = "Recycle Bin";
+    bin_.texture_ = BIN;
+    bin_.size_ = boxSize_/10.0f;
+    bin_.x_ = boxSize_/2.0f;
+    bin_.y_ = 0;
+    bin_.z_ = 0;
     setCursor(Qt::BlankCursor);
     reloadFolder();
 }
@@ -62,6 +72,7 @@ void GlWidget::initializeGL()
     loadTexture("../code/ressources/picture.png", PICTURE);
     loadTexture("../code/ressources/text.png", TEXT);
     loadTexture("../code/ressources/video.png", VIDEO);
+    loadTexture("../code/ressources/bin.jpg", BIN);
 
     glEnable(GL_TEXTURE_2D);
 
@@ -454,6 +465,7 @@ void GlWidget::drawCurrentGrid()
     QList<item_t>::iterator it;
     for (it = itemList_.begin(); it != itemList_.end(); it++)
         drawTile(*it);
+    drawCube(bin_);
 }
 
 //find the closest cube from the palm center
@@ -462,16 +474,27 @@ int GlWidget::closestItem(float pTreshold)
     float minDist = 1000.0f;
     QList<item_t>::iterator it;
     int id = -1, i = 0;
+
+    //search in the items displayed
     for (it = itemList_.begin(); it != itemList_.end(); it++)
     {
         Leap::Vector testV(it->x_,it->y_+it->yOffset_, it->z_);
         float delta = palmPos_.distanceTo(testV);
-        if ((delta <= pTreshold) && (delta <= minDist))
+        if ( (delta <= pTreshold) && (delta <= minDist) )
         {
             minDist = delta;
             id = i;
         }
         i++;
+    }
+
+    //search in special items like bin or menu
+    Leap::Vector testBin(bin_.x_, bin_.y_ + bin_.yOffset_, bin_.z_ );
+    float delta = palmPos_.distanceTo(testBin);
+    if ( (delta <= (bin_.size_ + bin_.sizeOffset_)) && (delta <= minDist) )
+    {
+        minDist = delta;
+        id = ID_BIN;
     }
     return id;
 }
@@ -547,7 +570,6 @@ void GlWidget::reloadFolder()
     QFileInfoList fileList = fileExplorer_.entryInfoList();
     QFileInfoList::const_iterator it;
     QList<item_t> newList;
-
     for( it = fileList.cbegin(); it != fileList.cend(); it++)
     {
         //TODO: choose better textures
@@ -586,6 +608,30 @@ void GlWidget::reloadFolder()
     timer_->start();
 }
 
+void GlWidget::doCopy(int pDestination)
+{
+    QString destinationDir;
+    QString currentDir = fileExplorer_.dirName();
+    if ( pDestination >= 0 )
+    {
+        QFileInfo info(itemList_[pDestination].fileName_);
+        if ( info.isDir() )
+        {
+            destinationDir = info.fileName();
+        }else{
+            destinationDir = currentDir;
+        }
+    }
+    QMutexLocker locker(&mutexList_);
+    QList<item_t>::const_iterator it;
+    for ( it=itemList_.cbegin(); it!=itemList_.cend(); it++)
+    {
+        if ( it->selected_ )
+            qDebug()<<"Copy "<<currentDir+it->fileName_<<" to "<<destinationDir+it->fileName_;
+            //QFile::copy(currentDir+it->fileName_,destinationDir+it->fileName_);
+    }
+}
+
 void GlWidget::customEvent(QEvent* pEvent)
 {
     HandEvent* event = dynamic_cast<HandEvent*>(pEvent);
@@ -601,10 +647,21 @@ void GlWidget::customEvent(QEvent* pEvent)
         {
         case HandEvent::Opened:
             //release nowhere, do nothing
-            if ( grabbing_ && item == -1 )
+            if ( grabbing_ )
             {
-                grabbing_ = false;
-                grabList_.clear();
+                if (item == ID_BIN )
+                {
+                    slotDeleteSelected();
+                }
+                else if ( item == -1 ) // release in the void
+                {
+                    grabbing_ = false;
+                    grabList_.clear();
+                }
+                else if ( item >= 0 )
+                {
+                    doCopy(item);
+                }
             }
             break;
         case HandEvent::Closed:
@@ -627,7 +684,7 @@ void GlWidget::customEvent(QEvent* pEvent)
             changeDirectory("..");
             break;
         case HandEvent::Grabbed:
-            if (event->item() != -1 && itemList_[event->item()].selected_ )
+            if (event->item() >= 0 && itemList_[event->item()].selected_ )
             {
                 if (selectionMode_ == HandEvent::MULTIPLE )
                 {
@@ -650,6 +707,9 @@ void GlWidget::customEvent(QEvent* pEvent)
        case HandEvent::Moved:
             //convert normalize hand pos to our interaction box
             palmPos_ = (event->pos()+Vector(-0.5f,-0.5f,-1.0f))*boxSize_*1.5f;
+            break;
+       case HandEvent::Circle:
+            qDebug()<<"Circle Event!";
             break;
         default:
             break;
@@ -689,8 +749,13 @@ void GlWidget::slotMoveHead(int pAxis, float pDelta)
 //called when select gesture is made
 void GlWidget::slotSelect(int pItem)
 {
+
+    if (pItem == ID_BIN)
+    {
+        //Open the bin
+    }
     //hand is on a single item
-    if (pItem!= -1 )
+    else if (pItem >= 0 )
     { 
         if ( selectionMode_ == HandEvent::SINGLE )
         {
@@ -706,7 +771,7 @@ void GlWidget::slotSelect(int pItem)
             }
             else //open previously selected item
             {
-                if ( pItem< fileExplorer_.entryInfoList().size() )
+                if ( pItem < fileExplorer_.entryInfoList().size() )
                 {
                     QFileInfo info =  fileExplorer_.entryInfoList().at(pItem);
                     if ( info.isDir() )
@@ -732,6 +797,17 @@ void GlWidget::slotSelect(int pItem)
     {
         for(int i = 0; i < itemList_.size(); i++)
             itemList_[i].selected_ = false;
+    }
+}
+
+void GlWidget::slotDeleteSelected()
+{
+    QMutexLocker locker(&mutexList_);
+    foreach(item_t item, itemList_)
+    {
+        if ( item.selected_ )
+            qDebug()<<"Deleting: "<<item.fileName_;
+            //QFile::remove(item.fileName_);
     }
 }
 
