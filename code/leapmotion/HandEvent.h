@@ -15,6 +15,7 @@ using namespace Leap;
 #define EVENT_SWIPE 1007
 #define EVENT_GRAB 1008
 #define EVENT_MOVE 1009
+#define EVENT_CIRCLE 1010
 
 //defining a custom Event
 class HandEvent: public QEvent
@@ -32,6 +33,7 @@ public:
     static const QEvent::Type Swiped = static_cast<QEvent::Type>(EVENT_SWIPE);
     static const QEvent::Type Grabbed = static_cast<QEvent::Type>(EVENT_GRAB);
     static const QEvent::Type Moved = static_cast<QEvent::Type>(EVENT_MOVE);
+    static const QEvent::Type Circle = static_cast<QEvent::Type>(EVENT_CIRCLE);
 
 private:
     Leap::Vector pos_; // palm position

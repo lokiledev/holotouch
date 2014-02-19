@@ -53,8 +53,7 @@ public:
      *detector
      */
     void setItem(int pNewItem);
-    bool detectSwipe(const Frame& pFrame);
-    bool detectClick(const Frame& pFrame);
+    void detectGesture(const Frame& pFrame);
 
 private:
     //encapsulated functions for sending events
@@ -66,6 +65,7 @@ private:
     void swipeEvent();
     void grabEvent();
     void moveEvent();
+    void circleEvent();
 };
 
 #endif // LEAPLISTENER_H

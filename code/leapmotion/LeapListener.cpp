@@ -74,7 +74,6 @@ void LeapListener::onFrame(const Controller& controller)
         //use an hysteresis on hand sphere radius
         static int countClose = 0;
         static int countUp = 0;
-        static bool clicked = false;
         static bool zoom = false;
         //If hand is not near the same item, reset counters
 
@@ -135,8 +134,6 @@ void LeapListener::onFrame(const Controller& controller)
             }
         }
 
-        clicked = detectClick(frame);
-
         InteractionBox box = frame.interactionBox();
         if ( box.isValid() )
             rPos_ = box.normalizePoint(pos, false);
@@ -168,15 +165,11 @@ void LeapListener::onFrame(const Controller& controller)
 
         //always send a move event
         moveEvent();
-        if ( detectSwipe(frame) )
-            swipeEvent();
+        detectGesture(frame);
         if ( zoom )
+        {
             zoomEvent();
             zoom = false;
-        if ( clicked )
-        {
-            clickEvent();
-            clicked = false;
         }
         if ( grabbing_ && handState_ == OPEN )
         {
@@ -186,47 +179,44 @@ void LeapListener::onFrame(const Controller& controller)
     }
 }
 
-bool LeapListener::detectSwipe(const Frame& pFrame)
+void LeapListener::detectGesture(const Frame& pFrame)
 {
-    bool ok = false;
     GestureList list = pFrame.gestures();
-    if (list.count() > 0 && !swipeTimer_->isActive() )
+    if (list.count() > 0 && list[0].isValid() )
     {
         Gesture gest = list[0];
-        //detect end of gesture
-        if ( (gest.type() == Gesture::TYPE_SWIPE)
-             && gest.hands()[0].isValid()
-             && gest.hands()[0].id() == rightHand_
-             && gest.state() == Gesture::STATE_STOP )
+        switch ( gest.type() )
         {
-            SwipeGesture swipe = SwipeGesture(gest);
-            // direction almost vertical
-            float angle = swipe.direction().angleTo(Vector(0,1,0))*180.0f/PI;
-            if (angle <= 20.0f)
+        case Gesture::TYPE_INVALID:
+            break;
+        case Gesture::TYPE_KEY_TAP:
+            if ( gest.hands()[0].id() == rightHand_ )
+                clickEvent();
+            break;
+        case Gesture::TYPE_SWIPE:
+            if ( gest.hands()[0].id() == rightHand_
+                && gest.state() == Gesture::STATE_STOP
+                && !swipeTimer_->isActive() )
             {
-                ok = true;
-                swipeTimer_->start();
+                SwipeGesture swipe = SwipeGesture(gest);
+                // direction almost vertical
+                float angle = swipe.direction().angleTo(Vector(0,1,0))*180.0f/PI;
+                if (angle <= 20.0f)
+                {
+                    swipeEvent();
+                    swipeTimer_->start();
+                }
             }
+            break;
+        case Gesture::TYPE_CIRCLE:
+            if ( gest.hands()[0].id() == rightHand_ &&
+                 gest.state() == Gesture::STATE_STOP )
+                circleEvent();
+            break;
+        default:
+            break;
         }
     }
-    return ok;
-}
-
-bool LeapListener::detectClick(const Frame& pFrame)
-{
-    bool ok = false;
-    GestureList list = pFrame.gestures();
-    if (list.count() > 0 )
-    {
-        Gesture gest = list[0];
-        if ( (gest.type() == Gesture::TYPE_KEY_TAP)
-             && gest.hands()[0].isValid()
-             && gest.hands()[0].id() == rightHand_)
-        {
-            ok = true;
-        }
-    }
-    return ok;
 }
 
 void LeapListener::setReceiver(QObject* pObject)
@@ -329,4 +319,12 @@ void LeapListener::moveEvent()
     }
 }
 
-
+void LeapListener::circleEvent()
+{
+    if ( receiver_ )
+    {
+        HandEvent* event = 0;
+        event = new HandEvent(HandEvent::Circle, rPos_);
+        QApplication::postEvent(receiver_, event);
+    }
+}
