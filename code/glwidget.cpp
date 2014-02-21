@@ -614,7 +614,8 @@ void GlWidget::doCopy(int pDestination)
     QString currentDir = fileExplorer_.dirName();
     if ( pDestination >= 0 )
     {
-        QFileInfo info(itemList_[pDestination].fileName_);
+        destinationDir = fileExplorer_.absoluteFilePath(itemList_[pDestination].fileName_);
+        QFileInfo info(destinationDir);
         if ( info.isDir() )
         {
             destinationDir = info.fileName();
@@ -651,6 +652,7 @@ void GlWidget::customEvent(QEvent* pEvent)
             //release nowhere, do nothing
             if ( grabbing_ )
             {
+                item = closestItem(2*spacing_);//less precise because of hoppening hand
                 if (item == ID_BIN ) //put them in the bin
                 {
                     slotDeleteSelected();
