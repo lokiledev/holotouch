@@ -148,7 +148,7 @@ void LeapListener::onFrame(const Controller& controller)
             Hand leftHand = frame.hands().leftmost();
             float radius = leftHand.sphereRadius();
             // If left hand is visible, select multiple items at a time
-            if ( radius <= SELECT_TRESHOLD )
+            if ( radius >= RELEASE_TRESHOLD )
                 selectionMode_ = HandEvent::MULTIPLE;
 
             //hand pitch controls zoom/scroll in the view
@@ -249,7 +249,7 @@ void LeapListener::openEvent()
     {
         HandEvent* event = 0;
         event = new HandEvent(HandEvent::Opened, rPos_, trackedItem_);
-        QApplication::sendEvent(receiver_, event);
+        QApplication::postEvent(receiver_, event);
     }
 }
 
@@ -259,7 +259,7 @@ void LeapListener::closeEvent()
     {
         HandEvent* event = 0;
         event = new HandEvent(HandEvent::Closed, rPos_, trackedItem_);
-        QApplication::sendEvent(receiver_,event);
+        QApplication::postEvent(receiver_,event);
     }
 }
 
@@ -269,7 +269,7 @@ void LeapListener::zoomEvent()
     {
         HandEvent* event = 0;
         event = new HandEvent(HandEvent::Zoom, rPos_, trackedItem_, selectionMode_, zoomFactor_);
-        QApplication::sendEvent(receiver_,event);
+        QApplication::postEvent(receiver_,event);
     }
 }
 

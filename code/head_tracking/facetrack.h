@@ -1,5 +1,5 @@
-#ifndef FACETRACK_CPP
-#define FACETRACK_CPP
+#ifndef FACETRACK_H
+#define FACETRACK_H
 
 #include "opencv2/core/core.hpp"
 #include "opencv2/highgui/highgui.hpp"
@@ -82,4 +82,4 @@ signals:
 
 };
 
-#endif // FACETRACK_CPP
+#endif // FACETRACK_H

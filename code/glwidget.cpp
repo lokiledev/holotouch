@@ -618,21 +618,20 @@ void GlWidget::doCopy(int pDestination)
         if ( info.isDir() )
         {
             destinationDir = info.fileName();
-        }else{
-            destinationDir = currentDir;
+            QMutexLocker locker(&mutexList_);
+            QList<item_t>::iterator it;
+            for ( it=itemList_.begin(); it!=itemList_.end(); it++)
+            {
+                if ( it->selected_ )
+                {
+                    qDebug()<<"Copy "<<currentDir<<"/"<<it->fileName_<<" to "<<destinationDir<<"/"<<it->fileName_;
+                    //QFile::copy(currentDir+"/"+it->fileName_,destinationDir+"/"+it->fileName_);
+                    it->selected_ = false;
+                }
+            }
         }
     }
-    QMutexLocker locker(&mutexList_);
-    QList<item_t>::iterator it;
-    for ( it=itemList_.begin(); it!=itemList_.end(); it++)
-    {
-        if ( it->selected_ )
-        {
-            qDebug()<<"Copy "<<currentDir<<"/"<<it->fileName_<<" to "<<destinationDir<<"/"<<it->fileName_;
-            //QFile::copy(currentDir+"/"+it->fileName_,destinationDir+"/"+it->fileName_);
-            it->selected_ = false;
-        }
-    }
+
 }
 
 void GlWidget::customEvent(QEvent* pEvent)
