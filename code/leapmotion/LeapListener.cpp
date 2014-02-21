@@ -39,7 +39,7 @@ void LeapListener::onConnect(const Controller& controller)
     qDebug() << "Connected";
     controller.enableGesture(Gesture::TYPE_KEY_TAP);
     controller.enableGesture(Gesture::TYPE_SWIPE);
-    controller.enableGesture(Gesture::TYPE_CIRCLE);
+    //controller.enableGesture(Gesture::TYPE_CIRCLE);
 }
 
 void LeapListener::onDisconnect(const Controller& controller)

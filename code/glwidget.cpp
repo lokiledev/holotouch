@@ -623,12 +623,15 @@ void GlWidget::doCopy(int pDestination)
         }
     }
     QMutexLocker locker(&mutexList_);
-    QList<item_t>::const_iterator it;
-    for ( it=itemList_.cbegin(); it!=itemList_.cend(); it++)
+    QList<item_t>::iterator it;
+    for ( it=itemList_.begin(); it!=itemList_.end(); it++)
     {
         if ( it->selected_ )
-            qDebug()<<"Copy "<<currentDir+it->fileName_<<" to "<<destinationDir+it->fileName_;
-            //QFile::copy(currentDir+it->fileName_,destinationDir+it->fileName_);
+        {
+            qDebug()<<"Copy "<<currentDir<<"/"<<it->fileName_<<" to "<<destinationDir<<"/"<<it->fileName_;
+            //QFile::copy(currentDir+"/"+it->fileName_,destinationDir+"/"+it->fileName_);
+            it->selected_ = false;
+        }
     }
 }
 
@@ -649,19 +652,21 @@ void GlWidget::customEvent(QEvent* pEvent)
             //release nowhere, do nothing
             if ( grabbing_ )
             {
-                if (item == ID_BIN )
+                if (item == ID_BIN ) //put them in the bin
                 {
                     slotDeleteSelected();
+                    reloadFolder();
                 }
                 else if ( item == -1 ) // release in the void
                 {
-                    grabbing_ = false;
-                    grabList_.clear();
+
                 }
-                else if ( item >= 0 )
+                else if ( item >= 0 ) // copy in given folder
                 {
                     doCopy(item);
                 }
+                grabbing_ = false;
+                grabList_.clear();
             }
             break;
         case HandEvent::Closed:
@@ -806,8 +811,10 @@ void GlWidget::slotDeleteSelected()
     foreach(item_t item, itemList_)
     {
         if ( item.selected_ )
+        {
             qDebug()<<"Deleting: "<<item.fileName_;
             //QFile::remove(item.fileName_);
+        }
     }
 }
 
