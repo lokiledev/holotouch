@@ -23,7 +23,8 @@ GlWidget::item_t::item_t(const QString& pName, float pSize, texId_t pText)
      texture_(pText),
      selected_(false),
      drawn_(false),
-     fileName_(pName)
+     fileName_(pName),
+     anchor_(0, 0, 0)
 {
 }
 
@@ -37,6 +38,7 @@ GlWidget::GlWidget(QWidget *parent) :
     maxZoom_(BOX_SIZE),
     grabbing_(false),
     fileExplorer_(QDir::home()),
+    block_swipe_(false),
     currentAction_(IDLE)
 {
     leapListener_.setReceiver(this);
@@ -117,6 +119,7 @@ void GlWidget::paintGL()
     drawPalmPos();
     computeTube(10);
     handleSelection();
+    handleAttraction();
     drawCurrentGrid();
     handleGrab();
     displayPath();
@@ -345,11 +348,11 @@ void GlWidget::computeTube(int pItemPerCircle)
     for (it = itemList_.begin(); it != itemList_.end(); it++)
     {
       it->size_ = itemSize;
-      it->x_ = cos(posAngle*angle)*radius;
-      it->y_ = zoomOffset_ - 2*spacing_*circleNb - (posAngle*2*spacing_)/gridSize_;
+      it->anchor_.x = cos(posAngle*angle)*radius;
+      it->anchor_.y = zoomOffset_ - 2*spacing_*circleNb - (posAngle*2*spacing_)/gridSize_;
 
       //the nearest item is at z = 0 (offset by boxSize/2)
-      it->z_ = -radius + sin(posAngle*angle)*radius;
+      it->anchor_.z = -radius + sin(posAngle*angle)*radius;
       posAngle += 1;
       if ( posAngle >= pItemPerCircle )
       {
@@ -524,6 +527,39 @@ void GlWidget::handleSelection()
     }
 }
 
+void GlWidget::handleAttraction()
+{
+    float G = 0.5;
+    const float limit = spacing_ / 4.0;
+
+    //simulate gravitational attraction between cubes and the hand cursor
+    for (QList<item_t>::iterator it = itemList_.begin(); it != itemList_.end(); it++)
+      {
+        if ( it->attracted_ )
+        {
+            Vector dir = palmPos_ - it->anchor_;
+            float force = G * dir.magnitudeSquared();
+            float ratio = force / (limit * limit);
+            if (ratio >= 1.0f)
+                ratio = 1.0f;
+
+            Vector newPos = it->anchor_ + dir.normalized() * ratio * limit;
+            it->x_ = newPos.x;
+            it->y_ = newPos.y;
+            it->z_ = newPos.z;
+        }
+        else
+        {
+            Vector tmp(it->x_, it->y_, it->z_);
+            Vector newPos = it->anchor_ - tmp;
+            tmp += newPos * 0.04;
+            it->x_ = tmp.x;
+            it->y_ = tmp.y;
+            it->z_ = tmp.z;
+        }
+    }
+}
+
 void GlWidget::displayPath()
 {
     QString path = fileExplorer_.absolutePath();
@@ -652,7 +688,7 @@ void GlWidget::customEvent(QEvent* pEvent)
             //release nowhere, do nothing
             if ( grabbing_ )
             {
-                item = closestItem(2*spacing_);//less precise because of hoppening hand
+                item = closestItem(2*spacing_);//less precise because of opening hand
                 if (item == ID_BIN ) //put them in the bin
                 {
                     slotDeleteSelected();
@@ -687,7 +723,11 @@ void GlWidget::customEvent(QEvent* pEvent)
                 zoomOffset_ = 0;
             break;
         case HandEvent::Swiped:
-            changeDirectory("..");
+            if (!block_swipe_) {
+                block_swipe_ = true;
+                QTimer::singleShot(200, this, SLOT(slotTimerStopped()));
+                changeDirectory("..");
+            }
             break;
         case HandEvent::Grabbed:
             if (event->item() >= 0 && itemList_[event->item()].selected_ )
@@ -713,6 +753,7 @@ void GlWidget::customEvent(QEvent* pEvent)
        case HandEvent::Moved:
             //convert normalize hand pos to our interaction box
             palmPos_ = (event->pos()+Vector(-0.5f,-0.5f,-1.0f))*boxSize_*1.5f;
+            slotAttract(item);
             break;
        case HandEvent::Circle:
             qDebug()<<"Circle Event!";
@@ -749,6 +790,21 @@ void GlWidget::slotMoveHead(int pAxis, float pDelta)
             head_.z += pDelta;
         default:
             break;
+    }
+}
+
+void GlWidget::slotAttract(int pItem)
+{
+    if (pItem == ID_BIN)
+        return;
+
+    else if (pItem >= 0)
+    {
+        for( int i = 0; i < itemList_.size(); i++ )
+        {
+            itemList_[i].attracted_ = false;
+        }
+        itemList_[pItem].attracted_ = true;
     }
 }
 
@@ -817,6 +873,11 @@ void GlWidget::slotDeleteSelected()
             //QFile::remove(item.fileName_);
         }
     }
+}
+
+void GlWidget::slotTimerStopped()
+{
+    block_swipe_ = false;
 }
 
 //Not used

@@ -20,17 +20,14 @@ LeapListener::LeapListener()
       handState_(OPEN),
       zoomFactor_(0)
 {
-    swipeTimer_ = new QTimer();
-    swipeTimer_->setInterval(RESWIPE_INTERVAL);
-    swipeTimer_->setSingleShot(true);
 }
 
 void LeapListener::onInit(const Controller& controller)
 {
      qDebug() << "Initialized";
      Config config = controller.config();
-     config.setFloat("Gesture.Circle.MinRadius", 30);
-     config.setFloat("Gesture.Circle.MinArc", 2*PI);
+     //config.setFloat("Gesture.Circle.MinRadius", 30);
+     //config.setFloat("Gesture.Circle.MinArc", 2*PI);
      config.save();
 }
 
@@ -186,6 +183,7 @@ void LeapListener::onFrame(const Controller& controller)
 void LeapListener::detectGesture(const Frame& pFrame)
 {
     GestureList list = pFrame.gestures();
+
     if (list.count() > 0 && list[0].isValid() )
     {
         Gesture gest = list[0];
@@ -198,18 +196,13 @@ void LeapListener::detectGesture(const Frame& pFrame)
                 clickEvent();
             break;
         case Gesture::TYPE_SWIPE:
-            if ( gest.hands()[0].id() == rightHand_
-                && gest.state() == Gesture::STATE_STOP
-                && !swipeTimer_->isActive() )
+            if ( gest.hands()[0].id() == rightHand_ )
             {
                 SwipeGesture swipe = SwipeGesture(gest);
                 // direction almost vertical
                 float angle = swipe.direction().angleTo(Vector(0,1,0))*180.0f/PI;
-                if (angle <= 20.0f)
-                {
+                if (angle <= 45.0f)
                     swipeEvent();
-                    swipeTimer_->start();
-                }
             }
             break;
         case Gesture::TYPE_CIRCLE:

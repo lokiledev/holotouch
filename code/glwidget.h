@@ -49,8 +49,10 @@ public:
         float yOffset_;
         texId_t texture_;
         bool selected_;
+        bool attracted_;
         bool drawn_;
         QString fileName_;
+        Leap::Vector anchor_;
         //constructor
         item_t(const QString& pName = "", float pSize = 1.0f, texId_t pText = CRATE);
     };
@@ -73,6 +75,7 @@ private:
     float zoomOffset_;
     float maxZoom_;
     bool grabbing_;
+    bool block_swipe_;
 
     QDir fileExplorer_;
 
@@ -119,6 +122,7 @@ private:
     int closestItem(float pTreshold);
     void handleSelection();
     void handleHovering();
+    void handleAttraction();
     void handleGrab();
     void customEvent(QEvent* pEvent);
     void doCopy(int pDestination);
@@ -132,6 +136,8 @@ public slots:
 
 private slots:
     void slotSelect(int pItem = -1);
+    void slotAttract(int pItem = -1);
+    void slotTimerStopped();
     void slotDeleteSelected(void);
 };
 

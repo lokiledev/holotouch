@@ -34,7 +34,6 @@ private:
 
     HandEvent::Selection_t  selectionMode_;
     QObject* receiver_;
-    QTimer* swipeTimer_;
 
 public:
     //ctor
