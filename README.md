@@ -1,3 +1,10 @@
+Holotouch
+=========
+
+A 3D file explorer based on cheap computer peripherals (a usb webcam and a leapmotion) that simulates a 3D world where you can drag and drop files with natural hand gestures.
+
+Here you can see it in action: https://www.youtube.com/watch?v=8b99VDvN64M
+
 How to install dev environment for Linux (Ubuntu)
 
 Install opencv (V2.4.8):
